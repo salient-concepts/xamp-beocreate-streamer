@@ -1,0 +1,25 @@
+#!/bin/bash
+# shairport-sync session hook for xAMP.
+#
+# Notifies the streamer webapp when an AirPlay session begins / ends so MPD
+# auto-resume doesn't fight an active AirPlay client. Also runs `mpc stop` on
+# session start so MPD releases ALSA cleanly (previously this was inline in
+# shairport-sync.conf).
+set -e
+
+EVENT="${1:-}"
+WEBAPP_URL="http://127.0.0.1:8081/api/internal/airplay"
+
+case "$EVENT" in
+    start)
+        curl -s --max-time 1 -X POST -d "state=start" "$WEBAPP_URL" >/dev/null 2>&1 || true
+        /usr/bin/mpc stop >/dev/null 2>&1 || true
+        ;;
+    stop)
+        curl -s --max-time 1 -X POST -d "state=stop"  "$WEBAPP_URL" >/dev/null 2>&1 || true
+        ;;
+    *)
+        echo "usage: $0 {start|stop}" >&2
+        exit 2
+        ;;
+esac

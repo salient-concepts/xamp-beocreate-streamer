@@ -1,0 +1,21 @@
+# /etc/systemd/system/dsp-clear-filters.service
+# Beocreate DSP cold-boot initializer.
+# Calls /usr/local/sbin/xamp-dsp-init which sequences reset → install-profile →
+# clear-iir-filters, then verifies the DSP checksum and retries on mismatch.
+# Replaces the earlier inline ExecStart sequence which was racing with
+# sigmatcpserver's startup probes (continuous noise after cold boot).
+
+[Unit]
+Description=Beocreate DSP cold-boot initializer (reset + install + clear, with checksum verify/retry)
+After=sigmatcp.service
+Requires=sigmatcp.service
+Before=mpd.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/xamp-dsp-init
+RemainAfterExit=yes
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,24 @@
+# DD snapshot images (large binary, regeneratable; kept by seller only)
+snapshots/
+*.img
+*.img.gz
+*.img.xz
+
+# Build artifacts
+build/_build/
+*.deb
+
+# OS cruft
+.DS_Store
+Thumbs.db
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+
+# Editor
+*.swp
+*.swo
+*~

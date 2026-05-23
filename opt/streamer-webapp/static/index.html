@@ -1,0 +1,2624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0807">
+<title>Streamer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg-deep:     #08051a;
+  --bg-mid:      #16092e;
+  --bg-card:     #1a1230;
+  /* Primary synthwave accents */
+  --gold:        #ff4ecd;       /* legacy var name, now magenta */
+  --gold-soft:   #c83fa4;
+  --gold-glow:   rgba(255, 78, 205, 0.40);
+  --accent:      #ff4ecd;       /* neon magenta */
+  --accent-2:    #4edcff;       /* neon cyan */
+  --accent-glow: rgba(255, 78, 205, 0.40);
+  /* Gold reserved for hi-res badge ONLY */
+  --hires-gold:  #ffd970;
+  --hires-glow:  rgba(255, 217, 112, 0.45);
+  /* Text + chrome */
+  --ivory:       #f5e8d0;
+  --ivory-2:     #d8d0e8;
+  --blue-vu:     #2a4d8c;
+  --blue-vu-l:   #4a7dc8;
+  --red-zone:    #c8351c;
+  --text-1:      #e8e0f0;
+  --text-2:      #9a8eb0;
+  --text-3:      #5a4f70;
+}
+
+html, body {
+  background: radial-gradient(ellipse at top, #1a0a3a 0%, #08051a 60%);
+  color: var(--text-1);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-weight: 400;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+body {
+  background-image:
+    radial-gradient(ellipse at top, rgba(255, 78, 205, 0.08) 0%, transparent 55%),
+    radial-gradient(ellipse at bottom, rgba(78, 220, 255, 0.05) 0%, transparent 55%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Cpath d='M0 0h1v1H0z' fill='%23ffffff' opacity='0.015'/%3E%3C/svg%3E");
+}
+
+.app {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px 18px 60px;
+}
+
+/* ─── Tab navigation ─────────────────────────────────────────────────── */
+.top-nav {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 22px;
+  border-bottom: 1px solid rgba(255, 78, 205, 0.18);
+}
+.top-nav .nav-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-2);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  padding: 14px 22px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.top-nav .nav-btn svg {
+  width: 16px; height: 16px; fill: currentColor;
+}
+.top-nav .nav-btn:hover { color: var(--gold); }
+.top-nav .nav-btn.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+
+.tab-panel { display: none; }
+.tab-panel.active {
+  display: block;
+  animation: tabFade 0.22s ease-out;
+}
+@keyframes tabFade {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.bottom-nav { display: none; }
+
+/* ─── Header ─────────────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 78, 205, 0.18);
+  margin-bottom: 28px;
+}
+.brand {
+  font-family: 'Cormorant Garamond', serif;
+  font-weight: 700;
+  font-size: 32px;
+  letter-spacing: -0.5px;
+  color: var(--gold);
+  text-shadow: 0 0 20px var(--gold-glow);
+}
+.brand .sub {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 4px;
+  color: var(--ivory-2);
+  margin-left: 6px;
+  vertical-align: middle;
+  opacity: 0.85;
+}
+.format-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--accent-2);
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(78, 220, 255, 0.12), rgba(78, 220, 255, 0.04));
+  color: var(--accent-2);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  box-shadow: 0 0 16px rgba(78, 220, 255, 0.18) inset;
+}
+/* Hi-res = the ONE place gold appears in the whole UI */
+.format-badge.hires {
+  border-color: var(--hires-gold);
+  background: linear-gradient(180deg, rgba(255, 217, 112, 0.32), rgba(255, 217, 112, 0.10));
+  box-shadow: 0 0 24px var(--hires-glow), 0 0 16px var(--hires-glow) inset;
+  color: #fff5dc;
+}
+.format-badge .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 8px var(--accent-2);
+  animation: pulse 2s ease-in-out infinite;
+}
+.format-badge.hires .dot {
+  background: var(--hires-gold);
+  box-shadow: 0 0 8px var(--hires-gold);
+}
+@keyframes pulse { 50% { opacity: 0.4; } }
+
+/* ─── Now Playing card ──────────────────────────────────────────────── */
+.now-card {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 28px;
+  box-shadow:
+    0 6px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 78, 205, 0.06) inset;
+}
+.album-art {
+  width: 200px; height: 200px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #1f1438, #0c0820);
+  border: 1px solid rgba(255, 78, 205, 0.25);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.album-art .mark {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 64px;
+  color: var(--gold);
+  opacity: 0.4;
+  text-shadow: 0 0 24px var(--gold-glow);
+}
+.np-text { min-width: 0; }
+.np-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-artist {
+  font-size: 16px;
+  color: var(--ivory-2);
+  font-weight: 500;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-album {
+  font-size: 13px;
+  color: var(--text-2);
+  font-style: italic;
+  margin-bottom: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.progress {
+  height: 4px;
+  background: rgba(255, 78, 205, 0.12);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold-soft), var(--gold));
+  width: 0%;
+  transition: width 0.5s linear;
+  box-shadow: 0 0 8px var(--gold-glow);
+}
+.time-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── VU meters ─────────────────────────────────────────────────────── */
+.vu-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+  margin-bottom: 24px;
+}
+.vu-cell {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 12px;
+  padding: 14px 14px 8px;
+  box-shadow:
+    0 6px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 78, 205, 0.06) inset;
+}
+.vu-label {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  color: var(--gold);
+  text-align: center;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.vu-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* ─── Spectrum analyzer ─────────────────────────────────────────────── */
+.spectrum-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 12px;
+  padding: 20px 22px;
+  margin-bottom: 28px;
+  box-shadow:
+    0 6px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 78, 205, 0.06) inset;
+}
+.spectrum {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 4px;
+  height: 110px;
+}
+.bar-wrap {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  position: relative;
+}
+.bar {
+  width: 100%;
+  background: linear-gradient(180deg, #ffe76b 0%, #ff9ec5 25%, #ff4ecd 55%, #b03ad9 85%, #5a2a8c 100%);
+  border-radius: 2px 2px 0 0;
+  box-shadow: 0 0 14px rgba(255, 78, 205, 0.45);
+  height: 0%;
+  transition: height 0.06s linear;
+}
+.peak-cap {
+  position: absolute;
+  width: 100%;
+  height: 2px;
+  background: #fff5dc;
+  box-shadow: 0 0 6px #fff5dc;
+  bottom: 0;
+  transition: bottom 0.18s ease-out;
+  opacity: 0.9;
+}
+.section-label {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+/* ─── Transport ─────────────────────────────────────────────────────── */
+.transport-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow:
+    0 6px 28px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 78, 205, 0.06) inset;
+}
+.transport-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+.t-btn {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 78, 205, 0.45);
+  background: linear-gradient(180deg, #20143a, #0c0820);
+  color: var(--gold);
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.15s;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.t-btn:active { transform: scale(0.94); }
+.t-btn:hover {
+  border-color: var(--gold);
+  box-shadow:
+    0 0 18px var(--gold-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.t-btn.play {
+  width: 72px; height: 72px;
+  background: linear-gradient(180deg, #2c1d52, #14092a);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 24px var(--accent-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+.t-btn svg { width: 22px; height: 22px; fill: currentColor; }
+.t-btn.play svg { width: 30px; height: 30px; }
+
+.volume-row {
+  display: flex; align-items: center; gap: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 78, 205, 0.12);
+}
+.volume-row svg { width: 20px; height: 20px; fill: var(--gold); flex: none; }
+.volume-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--gold-soft) 0%, var(--gold-soft) var(--vol, 50%), rgba(255, 78, 205, 0.18) var(--vol, 50%), rgba(255, 78, 205, 0.18) 100%);
+  outline: none;
+}
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ff8edd, #ff4ecd);
+  border: 1px solid #7a1f5c;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6), 0 0 12px var(--accent-glow);
+}
+.volume-slider::-moz-range-thumb {
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #ff8edd, #ff4ecd);
+  border: 1px solid #7a1f5c;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+.volume-num {
+  font-variant-numeric: tabular-nums;
+  font-size: 13px;
+  color: var(--gold);
+  width: 30px;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* ─── Stations menu (LMS-style) ───────────────────────────────────────── */
+.stations-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 12px;
+  padding: 22px 22px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5),
+              0 0 0 1px rgba(255, 78, 205, 0.06) inset;
+}
+.stations-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.stations-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: 0.5px;
+}
+.stations-search {
+  flex: 1;
+  margin-left: 24px;
+  padding: 9px 14px;
+  border: 1px solid rgba(255, 78, 205, 0.25);
+  background: rgba(0, 0, 0, 0.35);
+  border-radius: 999px;
+  color: var(--ivory);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  outline: none;
+  max-width: 280px;
+}
+.stations-search:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 16px var(--gold-glow);
+}
+.stations-search::placeholder { color: var(--text-3); }
+
+.stations-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 78, 205, 0.12);
+  padding-bottom: 8px;
+  overflow-x: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.stations-tabs::-webkit-scrollbar { display: none; }
+.tab-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  padding: 7px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: var(--gold); border-color: rgba(255, 78, 205, 0.2); }
+.tab-btn.active {
+  color: var(--gold);
+  background: rgba(255, 78, 205, 0.10);
+  border-color: rgba(255, 78, 205, 0.4);
+}
+
+.subnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+}
+.subnav-btn {
+  background: rgba(255, 78, 205, 0.06);
+  border: 1px solid rgba(255, 78, 205, 0.18);
+  color: var(--text-1);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  padding: 5px 11px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-transform: capitalize;
+}
+.subnav-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+.subnav-btn.active {
+  background: rgba(255, 78, 205, 0.18);
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.station-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  max-height: 580px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+.station-grid::-webkit-scrollbar { width: 6px; }
+.station-grid::-webkit-scrollbar-thumb {
+  background: rgba(255, 78, 205, 0.25);
+  border-radius: 3px;
+}
+
+.station-tile {
+  background: rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: grid;
+  grid-template-columns: 44px 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.station-tile:hover {
+  border-color: var(--gold);
+  background: rgba(255, 78, 205, 0.06);
+  transform: translateY(-1px);
+}
+.station-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #1f1438, #0c0820);
+  border: 1px solid rgba(255, 78, 205, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex: none;
+}
+.station-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.station-logo .placeholder {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  color: var(--gold);
+  opacity: 0.5;
+}
+.station-info {
+  min-width: 0;
+}
+.station-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ivory);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 3px;
+}
+.station-meta {
+  font-size: 10px;
+  color: var(--text-2);
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.station-meta .codec-badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border: 1px solid rgba(255, 78, 205, 0.3);
+  border-radius: 8px;
+  color: var(--gold);
+  font-weight: 600;
+  margin-right: 4px;
+  text-transform: uppercase;
+  font-size: 9px;
+}
+.station-meta .codec-badge.hires {
+  background: rgba(255, 78, 205, 0.15);
+  border-color: var(--gold);
+}
+.fav-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-3);
+  cursor: pointer;
+  padding: 6px;
+  font-size: 16px;
+  transition: all 0.15s;
+  flex: none;
+}
+.fav-btn:hover { color: var(--gold); transform: scale(1.15); }
+.fav-btn.active { color: var(--gold); }
+.fav-btn svg { width: 18px; height: 18px; fill: currentColor; }
+
+.station-empty {
+  grid-column: 1 / -1;
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.station-loading {
+  grid-column: 1 / -1;
+  padding: 30px;
+  text-align: center;
+  color: var(--gold);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+/* Hi-res library (separate small section under stations) */
+.hires-section { margin-top: 24px; padding-top: 18px; border-top: 1px solid rgba(255, 78, 205, 0.12); }
+.hires-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 8px;
+}
+.hires-tile {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.hires-tile:hover {
+  border-color: var(--gold);
+  background: rgba(255, 78, 205, 0.06);
+}
+.hires-tile .name {
+  font-size: 12px;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.hires-tile .desc { font-size: 10px; color: var(--text-2); }
+
+/* ─── Spec showcase ─────────────────────────────────────────────────── */
+.specs-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 12px;
+  padding: 24px;
+  text-align: center;
+  margin-bottom: 24px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
+}
+.hw-tag {
+  font-size: 10px;
+  letter-spacing: 2.5px;
+  color: var(--text-2);
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.specs-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  color: var(--gold);
+  margin-bottom: 4px;
+}
+.specs-sub {
+  font-size: 11px;
+  color: var(--text-2);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.specs-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.spec {
+  border-left: 1px solid rgba(255, 78, 205, 0.18);
+  padding-left: 12px;
+  text-align: left;
+}
+.spec:first-child { border-left: none; padding-left: 0; }
+.spec .val {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  color: var(--gold);
+  line-height: 1;
+}
+.spec .lbl {
+  font-size: 9px;
+  color: var(--text-2);
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  margin-top: 4px;
+}
+
+/* ─── Settings ───────────────────────────────────────────────────────── */
+.kv-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.kv {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 78, 205, 0.12);
+  border-radius: 8px;
+}
+.kv-k {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  color: var(--text-2);
+  text-transform: uppercase;
+  font-weight: 600;
+}
+.kv-v {
+  font-size: 14px;
+  color: var(--ivory);
+  font-family: 'Inter', monospace;
+  word-break: break-all;
+}
+.kv-full { grid-column: 1 / -1; }
+
+.services-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 18px;
+}
+.svc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 78, 205, 0.18);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--text-1);
+}
+.svc-pill .dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--text-3);
+}
+.svc-pill.active .dot {
+  background: #3aebb1;
+  box-shadow: 0 0 6px rgba(58, 235, 177, 0.7);
+}
+.svc-pill.failed { color: #ff6680; }
+.svc-pill.failed .dot { background: #ff4d6d; }
+
+.settings-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 18px;
+  background: linear-gradient(180deg, var(--accent), var(--gold-soft));
+  color: #fff;
+  border: 0;
+  border-radius: 8px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.3px;
+}
+.settings-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 18px var(--accent-glow); }
+.settings-btn:active { transform: translateY(0); }
+.settings-btn-warn {
+  background: linear-gradient(180deg, #d8404f, #a01828);
+  color: #fff;
+}
+.settings-btn-warn:hover { box-shadow: 0 4px 18px rgba(216, 64, 79, 0.5); }
+.settings-btn-secondary {
+  background: transparent;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+}
+.settings-btn-secondary:hover { background: rgba(255, 78, 205, 0.1); transform: none; }
+
+/* Power management cluster */
+.power-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.power-section-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: var(--text-dim, #888);
+  margin-bottom: 10px;
+  text-align: center;
+}
+.power-cluster {
+  display: flex;
+  gap: 36px;
+  justify-content: center;
+  align-items: flex-start;
+}
+.power-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 0;
+  padding: 4px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: transform 0.15s;
+}
+.power-btn:active { transform: scale(0.95); }
+.power-btn-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid;
+  transition: all 0.18s;
+}
+.power-btn-reboot .power-btn-circle {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255, 78, 205, 0.06);
+}
+.power-btn-reboot:hover .power-btn-circle {
+  background: var(--accent);
+  color: #0a0a0f;
+  box-shadow: 0 0 24px var(--accent-glow);
+}
+.power-btn-shutdown .power-btn-circle {
+  border-color: #d8404f;
+  color: #d8404f;
+  background: rgba(216, 64, 79, 0.08);
+}
+.power-btn-shutdown:hover .power-btn-circle {
+  background: linear-gradient(180deg, #d8404f, #a01828);
+  color: #fff;
+  box-shadow: 0 0 24px rgba(216, 64, 79, 0.55);
+}
+.power-btn-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-dim, #aaa);
+}
+.power-btn:hover .power-btn-label { color: var(--text, #fff); }
+
+/* BT list */
+.bt-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+.bt-tile {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 78, 205, 0.12);
+  border-radius: 10px;
+}
+.bt-tile.connected { border-color: #3aebb1; background: rgba(58, 235, 177, 0.05); }
+.bt-icon {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 78, 205, 0.1);
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent);
+}
+.bt-tile.connected .bt-icon {
+  background: rgba(58, 235, 177, 0.15);
+  color: #3aebb1;
+}
+.bt-info { min-width: 0; }
+.bt-name { font-size: 14px; font-weight: 600; color: var(--ivory); }
+.bt-meta { font-size: 11px; color: var(--text-2); margin-top: 2px; }
+.bt-actions { display: flex; gap: 6px; flex: none; }
+.bt-action {
+  background: transparent;
+  border: 1px solid rgba(255, 78, 205, 0.3);
+  color: var(--accent);
+  border-radius: 6px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.bt-action:hover { background: rgba(255, 78, 205, 0.1); }
+.bt-action.danger { border-color: #d8404f; color: #d8404f; }
+.bt-action.danger:hover { background: rgba(216, 64, 79, 0.1); }
+.bt-empty {
+  text-align: center;
+  padding: 20px;
+  color: var(--text-2);
+  font-size: 13px;
+}
+.bt-loading {
+  text-align: center;
+  padding: 24px;
+  color: var(--accent);
+  font-size: 12px;
+  letter-spacing: 1.5px;
+}
+
+/* BT scan modal */
+.bt-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.bt-modal-inner {
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 460px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.7);
+}
+.bt-modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px;
+  color: var(--accent);
+  margin-bottom: 4px;
+}
+.bt-modal-sub {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 16px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  color: var(--ivory);
+  padding: 12px 22px;
+  border-radius: 999px;
+  font-size: 13px;
+  z-index: 300;
+  box-shadow: 0 4px 20px var(--accent-glow);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(8px); }
+.toast.error { border-color: #ff4d6d; box-shadow: 0 4px 20px rgba(255, 77, 109, 0.3); }
+.toast.success { border-color: #3aebb1; box-shadow: 0 4px 20px rgba(58, 235, 177, 0.3); }
+
+/* Hide BT card if brand sets show_bt false */
+body.no-bt #bt-card { display: none !important; }
+
+
+/* ─── Footer ─────────────────────────────────────────────────────────── */
+.footer {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-3);
+  letter-spacing: 1px;
+  padding: 20px 0 10px;
+}
+
+/* ─── Info cards (About tab) ──────────────────────────────────────────── */
+.info-card {
+  background: var(--bg-card);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 12px;
+  padding: 22px 26px;
+  margin-bottom: 22px;
+  box-shadow: 0 6px 28px rgba(0, 0, 0, 0.5);
+}
+.info-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 24px;
+  color: var(--accent);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+.info-sub {
+  font-size: 12px;
+  color: var(--text-2);
+  margin-bottom: 18px;
+  line-height: 1.5;
+}
+.info-body {
+  font-size: 14px;
+  color: var(--text-1);
+  line-height: 1.7;
+}
+.info-body p {
+  margin-bottom: 12px;
+}
+.info-body strong { color: var(--accent-2); }
+
+/* Theme picker */
+.theme-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+.theme-loading { color: var(--accent); font-size: 12px; padding: 14px; }
+.theme-swatch {
+  background: rgba(0, 0, 0, 0.4);
+  border: 2px solid rgba(255, 78, 205, 0.18);
+  border-radius: 10px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.theme-swatch:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.theme-swatch.active {
+  border-color: var(--accent);
+  background: rgba(255, 78, 205, 0.10);
+  box-shadow: 0 0 16px rgba(255, 78, 205, 0.30);
+}
+.theme-swatch .name {
+  font-size: 14px;
+  color: var(--ivory);
+  font-weight: 600;
+}
+.theme-swatch .tag {
+  font-size: 11px;
+  color: var(--text-2);
+}
+.theme-swatch .swatch-row {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+}
+.theme-swatch .dot {
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Alternative software grid */
+.alt-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.alt-tile {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 78, 205, 0.15);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.alt-name {
+  font-size: 15px;
+  color: var(--accent);
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+.alt-price {
+  font-size: 11px;
+  color: var(--accent-2);
+  font-weight: 600;
+  background: rgba(78, 220, 255, 0.10);
+  border: 1px solid rgba(78, 220, 255, 0.30);
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+.alt-tag {
+  font-size: 11px;
+  color: var(--text-2);
+  font-style: italic;
+  margin-bottom: 8px;
+}
+.alt-body {
+  font-size: 12px;
+  color: var(--text-1);
+  line-height: 1.55;
+  margin-bottom: 8px;
+}
+.alt-link {
+  font-size: 11px;
+  color: var(--accent-2);
+  font-family: 'Inter', monospace;
+  letter-spacing: 0.3px;
+}
+.alt-footnote {
+  font-size: 11px;
+  color: var(--text-2);
+  line-height: 1.55;
+  padding: 12px 14px;
+  border-left: 2px solid var(--accent);
+  background: rgba(255, 78, 205, 0.04);
+  border-radius: 0 6px 6px 0;
+}
+.alt-footnote strong { color: var(--accent-2); }
+
+/* ─── Responsive — phone (high-DPI = needs bigger sizes) ─────────────── */
+@media (max-width: 600px) {
+  .app { padding: 16px 14px 100px; }
+
+  /* Hide top nav, show bottom nav */
+  .top-nav { display: none; }
+  .bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(8, 6, 5, 0.97);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(255, 78, 205, 0.30);
+    padding: 10px 0 calc(14px + env(safe-area-inset-bottom, 0px));
+    z-index: 100;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.6);
+  }
+  .bottom-nav .nav-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    color: var(--text-2);
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 10px 4px;
+    transition: color 0.15s;
+    font-family: 'Inter', sans-serif;
+  }
+  .bottom-nav .nav-btn svg {
+    width: 26px; height: 26px;
+    fill: currentColor;
+  }
+  .bottom-nav .nav-btn .label {
+    font-size: 11px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .bottom-nav .nav-btn.active { color: var(--gold); }
+  .bottom-nav .nav-btn.active svg { filter: drop-shadow(0 0 8px var(--gold-glow)); }
+
+
+  /* Header */
+  .header { flex-direction: column; gap: 14px; align-items: flex-start; }
+  .brand { font-size: 36px; }
+  .brand .sub { font-size: 15px; letter-spacing: 5px; }
+  .format-badge { font-size: 13px; padding: 8px 16px; }
+
+  /* Now-playing */
+  .now-card { grid-template-columns: 1fr; text-align: center; gap: 18px; padding: 22px; }
+  .album-art { width: 200px; height: 200px; margin: 0 auto; }
+  .np-title  { font-size: 30px; }
+  .np-artist { font-size: 18px; }
+  .np-album  { font-size: 15px; }
+  .time-row  { font-size: 13px; }
+  .np-title, .np-artist, .np-album { text-align: center; }
+
+  /* VU meters — hidden on mobile (too cramped + redundant with spectrum) */
+  .vu-row { display: none; }
+
+  /* Spectrum */
+  .section-label { font-size: 12px; letter-spacing: 3px; }
+  .spectrum { height: 130px; }
+
+  /* Transport */
+  .t-btn { width: 64px; height: 64px; }
+  .t-btn.play { width: 84px; height: 84px; }
+  .t-btn svg { width: 26px; height: 26px; }
+  .t-btn.play svg { width: 36px; height: 36px; }
+  .volume-row svg { width: 24px; height: 24px; }
+  .volume-num { font-size: 16px; width: 36px; }
+
+  /* Stations menu */
+  .stations-title { font-size: 26px; }
+  .stations-search {
+    font-size: 16px;
+    padding: 12px 18px;
+    max-width: 100%;
+    margin-left: 0;
+    margin-top: 12px;
+  }
+  .stations-header { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .tab-btn { font-size: 13px; padding: 9px 16px; letter-spacing: 1.5px; }
+  .subnav-btn { font-size: 13px; padding: 7px 14px; }
+
+  /* Station tiles */
+  .station-grid { grid-template-columns: 1fr; gap: 12px; max-height: none; }
+  .station-tile { padding: 14px 16px; grid-template-columns: 56px 1fr auto; gap: 14px; }
+  .station-logo { width: 56px; height: 56px; }
+  .station-logo .placeholder { font-size: 28px; }
+  .station-name { font-size: 16px; }
+  .station-meta { font-size: 12px; }
+  .station-meta .codec-badge { font-size: 11px; padding: 2px 8px; }
+  .fav-btn { padding: 10px; }
+  .fav-btn svg { width: 24px; height: 24px; }
+  .station-empty { font-size: 16px; padding: 50px 20px; }
+  .station-loading { font-size: 14px; }
+
+  /* Specs */
+  .specs-grid { grid-template-columns: repeat(2, 1fr); gap: 22px; }
+  .spec { border-left: none; padding-left: 0; }
+  .specs-title { font-size: 26px; }
+  .specs-sub { font-size: 13px; }
+  .spec .val { font-size: 28px; }
+  .spec .lbl { font-size: 11px; }
+
+  /* Footer */
+  .footer { font-size: 12px; padding: 26px 0 12px; }
+}
+
+/* ─── Kiosk mode (touchscreen 800x480) ───────────────────────────────── */
+body.kiosk { overflow: hidden; }
+body.kiosk .app { max-width: 800px; padding: 6px 8px; }
+body.kiosk .header,
+body.kiosk .sources,
+body.kiosk .specs-card,
+body.kiosk .vu-row,
+body.kiosk .footer { display: none !important; }
+body.kiosk .now-card {
+  grid-template-columns: 100px 1fr auto;
+  padding: 10px 14px;
+  gap: 14px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+body.kiosk .album-art {
+  width: 100px; height: 100px;
+}
+body.kiosk .album-art .mark { font-size: 42px; }
+body.kiosk .np-title  { font-size: 20px; margin-bottom: 2px; }
+body.kiosk .np-artist { font-size: 13px; margin-bottom: 2px; }
+body.kiosk .np-album  { font-size: 11px; margin-bottom: 6px; }
+body.kiosk .progress  { margin-bottom: 4px; }
+body.kiosk .time-row  { font-size: 10px; }
+body.kiosk .now-card .format-badge {
+  align-self: flex-start;
+  padding: 4px 10px;
+  font-size: 9px;
+}
+body.kiosk .vu-row {
+  gap: 10px;
+  margin-bottom: 8px;
+}
+body.kiosk .vu-cell { padding: 6px 8px 2px; }
+body.kiosk .vu-label { margin-top: 2px; font-size: 8px; }
+body.kiosk .spectrum-card {
+  padding: 14px 18px;
+  margin-bottom: 10px;
+}
+body.kiosk .spectrum { height: 180px; }
+body.kiosk .section-label {
+  display: none;
+}
+body.kiosk .transport-card {
+  padding: 10px 18px;
+  margin-bottom: 0;
+}
+body.kiosk .transport-row { gap: 14px; margin-bottom: 8px; }
+body.kiosk .t-btn { width: 44px; height: 44px; }
+body.kiosk .t-btn.play { width: 56px; height: 56px; }
+body.kiosk .t-btn svg { width: 18px; height: 18px; }
+body.kiosk .t-btn.play svg { width: 24px; height: 24px; }
+body.kiosk .volume-row { padding-top: 8px; }
+body.kiosk .volume-row svg { width: 16px; height: 16px; }
+body.kiosk .volume-num { font-size: 11px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Top tab navigation (desktop) -->
+  <nav class="top-nav">
+    <button class="nav-btn active" data-tab="player">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      Player
+    </button>
+    <button class="nav-btn" data-tab="stations">
+      <svg viewBox="0 0 24 24"><path d="M3.24 6.15C2.51 6.43 2 7.17 2 8v12a2 2 0 0 0 2 2h16c1.1 0 2-.9 2-2V8a2 2 0 0 0-2-2H8.3l7.43-3 .15-.07c.31-.14.56-.39.71-.69L17 1h-1.95l-.05.07L13 2 7.06 4.41 3.24 6.15zM7 20a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm14 0H9c1.21-1.07 2-2.61 2-4 0-1.39-.79-2.93-2-4h12v8z"/></svg>
+      Stations
+    </button>
+        <button class="nav-btn" data-tab="settings">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+      Settings
+    </button>
+    <button class="nav-btn" data-tab="about">
+      <svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
+      About
+    </button>
+  </nav>
+
+  <!-- ════════════════════ TAB: PLAYER ════════════════════ -->
+  <div class="tab-panel active" id="panel-player">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="brand"><span id="sw-name">Streamer</span><span class="sub" id="sw-sub">HI-FI</span></div>
+    <div id="format-badge" class="format-badge"><span class="dot"></span><span id="format-text">CONNECTING…</span></div>
+  </div>
+
+  <!-- Now Playing -->
+  <div class="now-card">
+    <div class="album-art"><div class="mark">♪</div></div>
+    <div class="np-text">
+      <div id="np-title" class="np-title">— No track —</div>
+      <div id="np-artist" class="np-artist">Awaiting source</div>
+      <div id="np-album" class="np-album">—</div>
+      <div class="progress"><div id="progress-fill" class="progress-fill"></div></div>
+      <div class="time-row">
+        <span id="elapsed">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- VU Meters -->
+  <div class="vu-row">
+    <div class="vu-cell">
+      <svg class="vu-svg" viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="vu-bg" cx="50%" cy="100%" r="120%">
+            <stop offset="0%" stop-color="#fbf2dc"/>
+            <stop offset="60%" stop-color="#f0e1bd"/>
+            <stop offset="100%" stop-color="#d4c298"/>
+          </radialGradient>
+          <linearGradient id="vu-glass" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="rgba(255,255,255,0.25)"/>
+            <stop offset="40%" stop-color="rgba(255,255,255,0.05)"/>
+            <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+          </linearGradient>
+          <filter id="needle-glow"><feGaussianBlur stdDeviation="1.2"/></filter>
+        </defs>
+        <!-- Face -->
+        <rect x="10" y="10" width="380" height="230" rx="10" fill="url(#vu-bg)" stroke="#3a2818" stroke-width="2"/>
+        <!-- Tick arc background -->
+        <path d="M 60 200 A 145 145 0 0 1 340 200" stroke="#2a1d12" stroke-width="1.5" fill="none"/>
+        <path d="M 240 75 A 145 145 0 0 1 340 200" stroke="#c8351c" stroke-width="3" fill="none" opacity="0.85"/>
+        <!-- Tick marks (generated via JS for precision but a few here) -->
+        <g class="ticks" stroke="#2a1d12" stroke-width="1.2" font-family="Inter, sans-serif" font-size="11" fill="#2a1d12">
+          <!-- -20 dB -->
+          <line x1="60" y1="200" x2="68" y2="190"/><text x="55" y="215">-20</text>
+          <!-- -10 dB -->
+          <line x1="115" y1="135" x2="123" y2="142"/><text x="105" y="130">-10</text>
+          <!-- -7 -->
+          <line x1="145" y1="105" x2="152" y2="113"/><text x="135" y="100">-7</text>
+          <!-- -5 -->
+          <line x1="175" y1="85" x2="180" y2="94"/><text x="167" y="80">-5</text>
+          <!-- -3 -->
+          <line x1="205" y1="74" x2="208" y2="84"/><text x="198" y="68">-3</text>
+          <!-- 0 dB -->
+          <line x1="240" y1="75" x2="240" y2="85" stroke-width="2"/><text x="234" y="68" font-weight="700">0</text>
+          <!-- +1 -->
+          <line x1="270" y1="84" x2="266" y2="93"/><text x="264" y="78" fill="#c8351c">+1</text>
+          <!-- +3 -->
+          <line x1="305" y1="105" x2="298" y2="113"/><text x="300" y="100" fill="#c8351c">+3</text>
+        </g>
+        <text x="200" y="160" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="14" font-style="italic" fill="#5a4326">VU</text>
+        <text x="200" y="180" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" letter-spacing="2" fill="#5a4326">xAMP · LEFT</text>
+        <!-- Peak hold needle -->
+        <line id="L-peak-needle" x1="200" y1="220" x2="200" y2="80"
+              stroke="#7a8db8" stroke-width="1.5" opacity="0.55" stroke-linecap="round"
+              transform="rotate(-55 200 220)"/>
+        <!-- Live needle -->
+        <line id="L-needle" x1="200" y1="220" x2="200" y2="78"
+              stroke="#1c3e7a" stroke-width="2.4" stroke-linecap="round"
+              filter="url(#needle-glow)"
+              transform="rotate(-55 200 220)"/>
+        <!-- Pivot -->
+        <circle cx="200" cy="220" r="8" fill="#3a2818" stroke="#1a1108" stroke-width="1"/>
+        <circle cx="200" cy="220" r="3" fill="#7a5828"/>
+        <!-- Glass overlay -->
+        <rect x="10" y="10" width="380" height="120" rx="10" fill="url(#vu-glass)"/>
+      </svg>
+      <div class="vu-label">LEFT CHANNEL</div>
+    </div>
+
+    <div class="vu-cell">
+      <svg class="vu-svg" viewBox="0 0 400 250" xmlns="http://www.w3.org/2000/svg">
+        <rect x="10" y="10" width="380" height="230" rx="10" fill="url(#vu-bg)" stroke="#3a2818" stroke-width="2"/>
+        <path d="M 60 200 A 145 145 0 0 1 340 200" stroke="#2a1d12" stroke-width="1.5" fill="none"/>
+        <path d="M 240 75 A 145 145 0 0 1 340 200" stroke="#c8351c" stroke-width="3" fill="none" opacity="0.85"/>
+        <g class="ticks" stroke="#2a1d12" stroke-width="1.2" font-family="Inter, sans-serif" font-size="11" fill="#2a1d12">
+          <line x1="60" y1="200" x2="68" y2="190"/><text x="55" y="215">-20</text>
+          <line x1="115" y1="135" x2="123" y2="142"/><text x="105" y="130">-10</text>
+          <line x1="145" y1="105" x2="152" y2="113"/><text x="135" y="100">-7</text>
+          <line x1="175" y1="85" x2="180" y2="94"/><text x="167" y="80">-5</text>
+          <line x1="205" y1="74" x2="208" y2="84"/><text x="198" y="68">-3</text>
+          <line x1="240" y1="75" x2="240" y2="85" stroke-width="2"/><text x="234" y="68" font-weight="700">0</text>
+          <line x1="270" y1="84" x2="266" y2="93"/><text x="264" y="78" fill="#c8351c">+1</text>
+          <line x1="305" y1="105" x2="298" y2="113"/><text x="300" y="100" fill="#c8351c">+3</text>
+        </g>
+        <text x="200" y="160" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="14" font-style="italic" fill="#5a4326">VU</text>
+        <text x="200" y="180" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" letter-spacing="2" fill="#5a4326">xAMP · RIGHT</text>
+        <line id="R-peak-needle" x1="200" y1="220" x2="200" y2="80"
+              stroke="#7a8db8" stroke-width="1.5" opacity="0.55" stroke-linecap="round"
+              transform="rotate(-55 200 220)"/>
+        <line id="R-needle" x1="200" y1="220" x2="200" y2="78"
+              stroke="#1c3e7a" stroke-width="2.4" stroke-linecap="round"
+              filter="url(#needle-glow)"
+              transform="rotate(-55 200 220)"/>
+        <circle cx="200" cy="220" r="8" fill="#3a2818" stroke="#1a1108" stroke-width="1"/>
+        <circle cx="200" cy="220" r="3" fill="#7a5828"/>
+        <rect x="10" y="10" width="380" height="120" rx="10" fill="url(#vu-glass)"/>
+      </svg>
+      <div class="vu-label">RIGHT CHANNEL</div>
+    </div>
+  </div>
+
+  <!-- Spectrum -->
+  <div class="spectrum-card">
+    <div class="section-label">SPECTRUM ANALYZER · 32 BANDS · 60 HZ – 16 KHZ</div>
+    <div id="spectrum" class="spectrum"></div>
+  </div>
+
+  <!-- Transport -->
+  <div class="transport-card">
+    <div class="transport-row">
+      <button class="t-btn" onclick="cmd('prev')" aria-label="Previous">
+        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+      </button>
+      <button class="t-btn play" id="play-btn" onclick="cmd('toggle')" aria-label="Play/Pause">
+        <svg id="play-icon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button class="t-btn" onclick="cmd('next')" aria-label="Next">
+        <svg viewBox="0 0 24 24"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg>
+      </button>
+    </div>
+    <div class="volume-row">
+      <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+      <input type="range" min="0" max="100" value="50" class="volume-slider" id="volume" oninput="setVolume(this.value)">
+      <span class="volume-num" id="volume-num">50</span>
+    </div>
+  </div>
+
+  </div><!-- /panel-player -->
+
+  <!-- ════════════════════ TAB: STATIONS ════════════════════ -->
+  <div class="tab-panel" id="panel-stations">
+
+  <!-- Stations menu -->
+  <div class="stations-card">
+    <div class="stations-header">
+      <div class="stations-title">Stations</div>
+      <input type="search" id="search-input" class="stations-search"
+             placeholder="Search 50,000+ stations…" autocomplete="off">
+    </div>
+
+    <div class="stations-tabs" id="stations-tabs">
+      <button class="tab-btn active"  data-tab="featured">⭐ Featured</button>
+      <button class="tab-btn"          data-tab="genre">🎵 By Genre</button>
+      <button class="tab-btn"          data-tab="country">🌍 By Country</button>
+      <button class="tab-btn"          data-tab="hires">💎 Hi-Res</button>
+      <button class="tab-btn"          data-tab="popular">🔥 Popular</button>
+      <button class="tab-btn"          data-tab="favorites">★ Favorites</button>
+    </div>
+
+    <div id="subnav" class="subnav" style="display:none;"></div>
+
+    <div id="station-grid" class="station-grid">
+      <div class="station-loading">LOADING…</div>
+    </div>
+  </div>
+
+  </div><!-- /panel-stations -->
+
+  <!-- ════════════════════ TAB: SETTINGS ════════════════════ -->
+<div class="tab-panel" id="panel-settings">
+
+  <!-- Network -->
+  <div class="info-card">
+    <div class="info-title">Network</div>
+    <div class="info-sub">Current WiFi connection. Tap <strong>Scan for WiFi networks</strong> below to switch to a different network — useful when you take the streamer to a friend's house or move it to a new room.</div>
+    <div class="kv-grid">
+      <div class="kv"><span class="kv-k">SSID</span><span class="kv-v" id="net-ssid">—</span></div>
+      <div class="kv"><span class="kv-k">Signal</span><span class="kv-v" id="net-signal">—</span></div>
+      <div class="kv"><span class="kv-k">Security</span><span class="kv-v" id="net-security">—</span></div>
+      <div class="kv"><span class="kv-k">IP address</span><span class="kv-v" id="net-ip">—</span></div>
+      <div class="kv"><span class="kv-k">MAC address</span><span class="kv-v" id="net-mac">—</span></div>
+    </div>
+<!-- Replacement Network card (use after the .info-title "Network") -->
+
+<button class="settings-btn" onclick="loadWifiScan()" id="wifi-scan-btn">
+  <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.94-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/></svg>
+  Scan for WiFi networks
+</button>
+
+<div id="wifi-scan-list" class="wifi-list" style="margin-top:12px;"></div>
+
+<details class="wifi-fallback">
+  <summary>Trouble switching? Use the setup hotspot</summary>
+  <p style="font-size:12px;color:var(--text-2);line-height:1.5;margin:8px 0 12px;">
+    If inline switching fails (wrong password, weak signal), use this fallback:
+    the streamer wipes its WiFi memory and reboots into hotspot mode.
+    Reconnect via the same captive portal flow as first-boot.
+  </p>
+  <button class="settings-btn settings-btn-warn" onclick="confirmSwitchWifi()">
+    Reset to setup hotspot
+  </button>
+</details>
+
+  </div>
+
+  <!-- Bluetooth (hidden if brand.show_bt = false) -->
+  <div class="info-card" id="bt-card">
+    <div class="info-title">Bluetooth</div>
+    <div class="info-sub">Paired speakers. Tap a device to connect or disconnect, or pair a new one.</div>
+    <div id="bt-paired-list" class="bt-list">
+      <div class="bt-loading">LOADING…</div>
+    </div>
+    <button class="settings-btn" onclick="openBtScan()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+      Pair new speaker
+    </button>
+  </div>
+
+  <!-- System -->
+  <div class="info-card">
+    <div class="info-title">System</div>
+    <div class="info-sub">Health and uptime. Reboot if anything misbehaves.</div>
+    <div class="kv-grid">
+      <div class="kv"><span class="kv-k">Hostname</span><span class="kv-v" id="sys-hostname">—</span></div>
+      <div class="kv"><span class="kv-k">Uptime</span><span class="kv-v" id="sys-uptime">—</span></div>
+      <div class="kv"><span class="kv-k">CPU temp</span><span class="kv-v" id="sys-temp">—</span></div>
+      <div class="kv"><span class="kv-k">Memory</span><span class="kv-v" id="sys-mem">—</span></div>
+      <div class="kv"><span class="kv-k">Kernel</span><span class="kv-v" id="sys-kernel">—</span></div>
+      <div class="kv kv-full"><span class="kv-k">Interfaces</span><span class="kv-v" id="sys-interfaces">—</span></div>
+    </div>
+    <div class="services-grid" id="services-grid">
+      <div class="bt-loading">LOADING…</div>
+    </div>
+    <button class="settings-btn settings-btn-secondary" style="margin-bottom:10px;" onclick="resetStationsToDefaults()">
+      <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4l-2.35 2.35z"/></svg>
+      Reset stations to defaults
+    </button>
+    <div class="power-section">
+      <div class="power-section-label">Power management</div>
+      <div class="power-cluster">
+        <button class="power-btn power-btn-reboot" onclick="confirmReboot()" aria-label="Reboot streamer">
+          <div class="power-btn-circle">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M17.65 6.35A7.958 7.958 0 0012 4a8 8 0 108 8h-2a6 6 0 11-1.76-4.24L13 11h7V4l-2.35 2.35z"/></svg>
+          </div>
+          <span class="power-btn-label">Reboot</span>
+        </button>
+        <button class="power-btn power-btn-shutdown" onclick="confirmShutdown()" aria-label="Shut down streamer">
+          <div class="power-btn-circle">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor"><path d="M13 3h-2v10h2V3zm4.83 2.17l-1.42 1.42A6.92 6.92 0 0119 12a7 7 0 11-14 0c0-2.04.87-3.87 2.25-5.16L5.83 5.17A8.97 8.97 0 003 12a9 9 0 1018 0c0-2.78-1.27-5.27-3.17-6.83z"/></svg>
+          </div>
+          <span class="power-btn-label">Shut down</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /panel-settings -->
+
+
+  <!-- ════════════════════ TAB: ABOUT ════════════════════ -->
+  <div class="tab-panel" id="panel-about">
+
+  <!-- Specs (hardware attribution) -->
+  <div class="specs-card">
+    <div class="hw-tag">HARDWARE</div>
+    <div class="specs-title" id="hw-name">—</div>
+    <div class="specs-sub" id="hw-dac">—</div>
+    <div class="specs-grid">
+      <div class="spec"><div class="val" id="spec-channels">—</div><div class="lbl">channels</div></div>
+      <div class="spec"><div class="val" id="spec-dsp">—</div><div class="lbl">DSP</div></div>
+      <div class="spec"><div class="val" id="spec-amp">—</div><div class="lbl">amp</div></div>
+      <div class="spec"><div class="val" id="spec-output">—</div><div class="lbl">max output</div></div>
+    </div>
+  </div>
+
+  <!-- Theme picker -->
+  <div class="info-card">
+    <div class="info-title">Themes</div>
+    <div class="info-sub">Tap a swatch to switch instantly.</div>
+    <div id="theme-picker" class="theme-picker">
+      <div class="theme-loading">LOADING THEMES…</div>
+    </div>
+  </div>
+
+  <!-- About / what is xAMP -->
+  <div class="info-card">
+    <div class="info-title">About xAMP</div>
+    <div class="info-body">
+      <p><strong>xAMP Audio Streamer</strong> is a custom hi-fi streaming OS built on top of Raspberry Pi OS. It runs MPD as the audio engine, exposes a branded web UI for control (this app), and ships with AirPlay 2 support so any iPhone or Mac can stream to it natively.</p>
+      <p>The hardware on this unit is the <strong id="about-hw">—</strong>, a 4-channel SigmaStudio DSP DAC built around the ADAU1452 + PCM5122 + dual TAS5754M class-D amplifiers. Designed for Bang & Olufsen Beocreate active-speaker conversions, it provides 2x30W + 2x60W of amplification with parametric EQ, crossovers, and time-alignment in firmware — all driven by the Pi over I²S.</p>
+      <p>Features included: <strong>50,000+ internet radio stations</strong> via radio-browser.info, <strong>curated featured list</strong> of audiophile favourites (Radio Paradise FLAC, Linn, Naim, BBC R3, SomaFM, Jazz24, ABC Classic, etc.), <strong>favourites star button</strong>, <strong>hi-res FLAC playback</strong> up to 24-bit / 192 kHz, <strong>real-time spectrum visualizer</strong> in the web app, <strong>AirPlay 2 receiver</strong>, and <strong>five colour themes</strong>.</p>
+    </div>
+  </div>
+
+  <!-- Audiophile customization framing -->
+  <div class="info-card">
+    <div class="info-title">Audiophile Customization</div>
+    <div class="info-sub">This unit ships with a working baseline. The Beocreate platform is designed to be tuned to your specific speakers and listening preferences — here is what is fixed vs. yours to customize.</div>
+    <div class="info-body">
+      <p><strong style="color:var(--accent)">What is configured (fixed working baseline):</strong></p>
+      <ul style="margin:8px 0 14px 20px;line-height:1.7">
+        <li>HiFiBerry’s canonical <code>4way-default.xml</code> DSP profile is loaded into the Beocreate EEPROM and auto-loaded at every boot via SELFBOOT</li>
+        <li>IIR filter slots cleared to flat passthrough on each boot (boot service: <code>dsp-clear-filters.service</code>)</li>
+        <li>Pi-side audiophile tuning: performance CPU governor, MPD pinned to dedicated isolated core 3, MPD <code>nice=-15</code>, RT scheduling enabled, HDMI audio disabled, USB audio class blacklisted, WiFi power-save off</li>
+        <li>MPD ALSA buffer 16384, no software resampling — native bit-perfect path from source to DAC</li>
+        <li>Output Voltage Limiter jumper removed (HiFiBerry recommendation for their DSP profiles)</li>
+        <li>SELFBOOT jumper installed; MUTE jumper not installed</li>
+      </ul>
+      <p><strong style="color:var(--accent)">What is yours to customize:</strong></p>
+      <ul style="margin:8px 0 14px 20px;line-height:1.7">
+        <li><strong>Speaker preset / crossover / EQ</strong> — the default is flat passthrough. Use HiFiBerry’s free <a href="https://github.com/bang-olufsen/create" target="_blank" rel="noopener" style="color:var(--accent)">BeoCreate2</a> web app (a NodeJS application) to select a B&amp;O speaker preset, configure 2-/3-/4-way crossovers, apply parametric EQ, and time-align drivers. <code>sigmatcpserver</code> is pre-installed on this unit and listens on port 8086 for SigmaStudio / BeoCreate2 to connect.</li>
+        <li><strong>PCM5122 digital filter mode</strong> — currently at silicon defaults. Linear-phase, minimum-phase, apodizing, brick-wall, and slow-roll-off variants are selectable via SigmaStudio (Windows, free from Analog Devices) by editing the DSP profile and re-flashing with <code>dsptoolkit install-profile</code>.</li>
+        <li><strong>Custom DSP profiles</strong> — swap the EEPROM-loaded <code>.xml</code> at any time. The boot service auto-applies whatever is at <code>/var/lib/hifiberry/dspprogram.xml</code>.</li>
+        <li><strong>Source software</strong> — the alternatives section below lists Volumio, Moode, RoonBridge, etc. Flash any of them to the SD card and the unit becomes that streamer.</li>
+      </ul>
+      <p>A <strong style="color:var(--accent)">Salient Concepts</strong> small-batch audiophile build. Custom hardware paired with a fully open-source software baseline, designed for hands-on owners comfortable with command-line and DSP tooling — ready to tune to your specific speakers and listening room. Each unit ships as a complete working baseline; ongoing customization draws on the broader open-source ecosystem (HiFiBerry, BeoCreate2, MPD, shairport-sync).</p>
+    </div>
+  </div>
+
+  <!-- Alternative software stacks -->
+  <div class="info-card">
+    <div class="info-title">Alternative Software</div>
+    <div class="info-sub">Not locked in. The buyer can flash any of these to the SD card and the unit becomes a different streamer.</div>
+    <div class="alt-grid">
+
+      <div class="alt-tile">
+        <div class="alt-name">Volumio <span class="alt-price">free / €30</span></div>
+        <div class="alt-tag">Most popular Pi audiophile OS</div>
+        <div class="alt-body">Mature, broad codec/source support, polished web UI, paid Premium tier adds DSP and multi-room. Wipes xAMP — flash the SD card with Volumio's official image.</div>
+        <div class="alt-link">volumio.com</div>
+      </div>
+
+      <div class="alt-tile">
+        <div class="alt-name">Moode Audio <span class="alt-price">free</span></div>
+        <div class="alt-tag">Pure audiophile-focused, open source</div>
+        <div class="alt-body">Deep DSP options, parametric EQ, room correction, integrated Camilla DSP. No paid tier, no telemetry. Hi-res FLAC, MQA, DSD support. Flash to SD.</div>
+        <div class="alt-link">moodeaudio.org</div>
+      </div>
+
+      <div class="alt-tile">
+        <div class="alt-name">piCorePlayer + LMS <span class="alt-price">free</span></div>
+        <div class="alt-tag">Squeezebox / Lyrion ecosystem</div>
+        <div class="alt-body">Tiny footprint Squeezelite endpoint. Pairs with Lyrion Music Server (formerly Logitech Media Server) running on a NAS or PC. Multi-room sync across all your Squeezebox devices.</div>
+        <div class="alt-link">picoreplayer.org · lyrion.org</div>
+      </div>
+
+      <div class="alt-tile">
+        <div class="alt-name">RoPieee (Roon) <span class="alt-price">$130/yr</span></div>
+        <div class="alt-tag">Best-in-class library + metadata</div>
+        <div class="alt-body">Turns the Pi into a Roon Ready endpoint. Requires Roon Core running on a separate NAS or PC ($130/year subscription or $830 lifetime). Industry-best metadata and library management.</div>
+        <div class="alt-link">ropieee.org · roonlabs.com</div>
+      </div>
+
+      <div class="alt-tile">
+        <div class="alt-name">HQPlayer NAA <span class="alt-price">€230</span></div>
+        <div class="alt-tag">Audiophile upsampling holy grail</div>
+        <div class="alt-body">Pi runs as a thin Network Audio Adapter for Signalyst's HQPlayer Embedded. Pairs with the most respected upsampler in computer audio. Best DSD512 and PCM upsampling available.</div>
+        <div class="alt-link">signalyst.com</div>
+      </div>
+
+      <div class="alt-tile">
+        <div class="alt-name">DietPi + MPD <span class="alt-price">free</span></div>
+        <div class="alt-tag">Roll your own minimal stack</div>
+        <div class="alt-body">Lightweight Debian-based OS with one-click MPD installer. For users who want to build their own configuration from scratch. Same MPD that xAMP uses internally.</div>
+        <div class="alt-link">dietpi.com</div>
+      </div>
+
+    </div>
+    <div class="alt-footnote">
+      <strong>How to switch:</strong> power down the unit, remove the SD card, flash the new OS image with Raspberry Pi Imager or Balena Etcher, reinsert and power on. Most options auto-detect the HiFiBerry Beocreate DAC (use the hifiberry-dac overlay). <strong>Switching wipes xAMP and the favourites database</strong> — keep a backup of your SD card if you want to come back.
+    </div>
+  </div>
+
+  <div class="footer" id="footer">—</div>
+
+  </div><!-- /panel-about -->
+
+</div><!-- /app -->
+
+
+<!-- Modal (hoisted out of tab panels so it works from any tab) -->
+<div id="bt-scan-modal" class="bt-modal" style="display:none;">
+  <div class="bt-modal-inner">
+    <!-- Content injected by JS -->
+  </div>
+</div>
+
+<!-- Bottom tab navigation (mobile) -->
+<nav class="bottom-nav">
+  <button class="nav-btn active" data-tab="player">
+    <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    <span class="label">Player</span>
+  </button>
+  <button class="nav-btn" data-tab="stations">
+    <svg viewBox="0 0 24 24"><path d="M3.24 6.15C2.51 6.43 2 7.17 2 8v12a2 2 0 0 0 2 2h16c1.1 0 2-.9 2-2V8a2 2 0 0 0-2-2H8.3l7.43-3 .15-.07c.31-.14.56-.39.71-.69L17 1h-1.95l-.05.07L13 2 7.06 4.41 3.24 6.15zM7 20a3 3 0 1 1 0-6 3 3 0 0 1 0 6zm14 0H9c1.21-1.07 2-2.61 2-4 0-1.39-.79-2.93-2-4h12v8z"/></svg>
+    <span class="label">Stations</span>
+  </button>
+    <button class="nav-btn" data-tab="settings">
+    <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61 l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.7-1.62-0.94L14.4,2.81c-0.04-0.24-0.24-0.41-0.48-0.41 h-3.84c-0.24,0-0.43,0.17-0.47,0.41L9.25,5.35C8.66,5.59,8.12,5.92,7.63,6.29L5.24,5.33c-0.22-0.08-0.47,0-0.59,0.22L2.74,8.87 C2.62,9.08,2.66,9.34,2.86,9.48l2.03,1.58C4.84,11.36,4.8,11.69,4.8,12s0.02,0.64,0.07,0.94l-2.03,1.58 c-0.18,0.14-0.23,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.7,1.62,0.94l0.36,2.54 c0.05,0.24,0.24,0.41,0.48,0.41h3.84c0.24,0,0.44-0.17,0.47-0.41l0.36-2.54c0.59-0.24,1.13-0.56,1.62-0.94l2.39,0.96 c0.22,0.08,0.47,0,0.59-0.22l1.92-3.32c0.12-0.22,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6 s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+    <span class="label">Settings</span>
+  </button>
+  <button class="nav-btn" data-tab="about">
+    <svg viewBox="0 0 24 24"><path d="M11 17h2v-6h-2v6zm1-15C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zM11 9h2V7h-2v2z"/></svg>
+    <span class="label">About</span>
+  </button>
+</nav>
+
+<script>
+// ─── Tab navigation ──────────────────────────────────────────────────────
+function switchTab(tabName) {
+  if (!["player", "stations", "settings", "about"].includes(tabName)) tabName = "player";
+  document.querySelectorAll(".tab-panel").forEach(p => p.classList.remove("active"));
+  const panel = document.getElementById("panel-" + tabName);
+  if (panel) panel.classList.add("active");
+  document.querySelectorAll(".nav-btn[data-tab]").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === tabName);
+  });
+  if (location.hash !== "#" + tabName) {
+    history.replaceState(null, "", "#" + tabName);
+  }
+  try { window.scrollTo({top: 0, behavior: "instant"}); } catch(e) { window.scrollTo(0, 0); }
+}
+document.querySelectorAll(".nav-btn[data-tab]").forEach(btn => {
+  btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+});
+window.addEventListener("hashchange", () => switchTab(location.hash.replace("#", "")));
+switchTab(location.hash.replace("#", "") || "player");
+
+// ─── Kiosk mode (touchscreen) ────────────────────────────────────────────
+const KIOSK = location.search.includes("kiosk=1");
+if (KIOSK) document.body.classList.add("kiosk");
+
+// ─── Spectrum bars (build once) ──────────────────────────────────────────
+const NUM_BARS = 32;
+const spectrumEl = document.getElementById("spectrum");
+const bars = [];
+const peaks = [];
+for (let i = 0; i < NUM_BARS; i++) {
+  const wrap = document.createElement("div");
+  wrap.className = "bar-wrap";
+  const bar = document.createElement("div");
+  bar.className = "bar";
+  const peak = document.createElement("div");
+  peak.className = "peak-cap";
+  wrap.appendChild(bar);
+  wrap.appendChild(peak);
+  spectrumEl.appendChild(wrap);
+  bars.push(bar);
+  peaks.push({el: peak, val: 0, t: 0});
+}
+
+// ─── VU needle math + smooth interpolation ──────────────────────────────
+function dbToAngle(db) {
+  // Maps -60..-20 → -55, -20..0 → -55..+20, 0..+3 → +20..+50
+  if (db <= -20) return -55;
+  if (db >= 3)   return 50;
+  if (db <= 0)   return -55 + ((db + 20) / 20) * 75;
+  return 20 + (db / 3) * 30;
+}
+function rotateNeedle(id, angle) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.setAttribute("transform", `rotate(${angle} 200 220)`);
+}
+
+// Target values arrive via WebSocket; current values are interpolated by rAF
+const vu = {
+  L_target: -60, L_current: -60,
+  R_target: -60, R_current: -60,
+  L_peak_target: -60, L_peak_current: -60,
+  R_peak_target: -60, R_peak_current: -60,
+};
+function vuTick() {
+  // Lerp factor: higher = snappier. 0.45 gives ~150ms half-life at 60Hz.
+  const k = 0.45;
+  vu.L_current      += (vu.L_target      - vu.L_current)      * k;
+  vu.R_current      += (vu.R_target      - vu.R_current)      * k;
+  vu.L_peak_current += (vu.L_peak_target - vu.L_peak_current) * 0.20;
+  vu.R_peak_current += (vu.R_peak_target - vu.R_peak_current) * 0.20;
+  rotateNeedle("L-needle",      dbToAngle(vu.L_current));
+  rotateNeedle("R-needle",      dbToAngle(vu.R_current));
+  rotateNeedle("L-peak-needle", dbToAngle(vu.L_peak_current));
+  rotateNeedle("R-peak-needle", dbToAngle(vu.R_peak_current));
+  requestAnimationFrame(vuTick);
+}
+requestAnimationFrame(vuTick);
+
+// ─── Now-playing rendering ───────────────────────────────────────────────
+function fmtTime(s) {
+  s = Math.floor(s || 0);
+  const m = Math.floor(s / 60);
+  const ss = String(s % 60).padStart(2, "0");
+  return `${m}:${ss}`;
+}
+function parseFormat(fmt) {
+  // MPD format strings: "44100:24:2" or "96000:24:2"
+  if (!fmt) return null;
+  const parts = fmt.split(":");
+  if (parts.length < 3) return null;
+  const rate = parseInt(parts[0]) / 1000;
+  const bits = parseInt(parts[1]);
+  return { rate, bits };
+}
+function updateCover(cover) {
+  if (!cover) return;
+  const art = document.querySelector(".album-art");
+  const mark = art.querySelector(".mark");
+  let img = art.querySelector("img.cover");
+  if (cover.url) {
+    if (!img) {
+      img = document.createElement("img");
+      img.className = "cover";
+      img.style.cssText = "width:100%;height:100%;object-fit:cover;border-radius:8px;";
+      img.onerror = () => { img.remove(); if (mark) mark.style.display = ""; };
+      art.appendChild(img);
+    }
+    if (img.src !== cover.url) img.src = cover.url;
+    if (mark) mark.style.display = "none";
+  } else {
+    if (img) img.remove();
+    if (mark) mark.style.display = "";
+  }
+}
+function updateNowPlaying(now) {
+  document.getElementById("np-title").textContent  = now.title  || "— No track —";
+  document.getElementById("np-artist").textContent = now.artist || (now.playing ? "Streaming" : "Idle");
+  document.getElementById("np-album").textContent  = now.album  || "—";
+  document.getElementById("elapsed").textContent  = fmtTime(now.elapsed);
+  document.getElementById("duration").textContent = now.duration > 0 ? fmtTime(now.duration) : "—";
+  if (now.duration > 0) {
+    document.getElementById("progress-fill").style.width = `${(now.elapsed / now.duration) * 100}%`;
+  } else {
+    document.getElementById("progress-fill").style.width = "0%";
+  }
+  // Format badge
+  const badge = document.getElementById("format-badge");
+  const text  = document.getElementById("format-text");
+  const info  = parseFormat(now.format);
+  if (info) {
+    text.textContent = `${info.bits}-bit · ${info.rate} kHz · FLAC`;
+    if (info.bits >= 24 || info.rate >= 88) badge.classList.add("hires");
+    else badge.classList.remove("hires");
+  } else if (now.playing) {
+    text.textContent = "STREAMING";
+    badge.classList.remove("hires");
+  } else {
+    text.textContent = "IDLE";
+    badge.classList.remove("hires");
+  }
+  // Volume
+  if (typeof now.volume === "number" && !volumeSliderActive) {
+    document.getElementById("volume").value = now.volume;
+    document.getElementById("volume-num").textContent = now.volume;
+    document.getElementById("volume").style.setProperty("--vol", `${now.volume}%`);
+  }
+  // Play icon
+  const playIcon = document.getElementById("play-icon");
+  if (now.playing) {
+    playIcon.innerHTML = '<path d="M6 5h4v14H6zm8 0h4v14h-4z"/>';
+  } else {
+    playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+  }
+}
+
+// ─── Spectrum rendering ──────────────────────────────────────────────────
+function updateSpectrum(spec) {
+  const now = performance.now();
+  for (let i = 0; i < NUM_BARS && i < spec.length; i++) {
+    const v = Math.max(0, Math.min(1, spec[i]));
+    bars[i].style.height = `${v * 100}%`;
+    if (v > peaks[i].val) {
+      peaks[i].val = v;
+      peaks[i].t = now;
+    } else if (now - peaks[i].t > 800) {
+      peaks[i].val = Math.max(0, peaks[i].val - 0.012);
+    }
+    peaks[i].el.style.bottom = `${peaks[i].val * 100}%`;
+  }
+}
+
+// ─── Commands ────────────────────────────────────────────────────────────
+async function cmd(action, value) {
+  try {
+    await fetch("/api/cmd", {
+      method:  "POST",
+      headers: {"Content-Type": "application/json"},
+      body:    JSON.stringify({ action, value })
+    });
+  } catch (e) { console.error(e); }
+}
+
+let volumeSliderActive = false;
+let volumeTimer = null;
+function setVolume(v) {
+  document.getElementById("volume-num").textContent = v;
+  document.getElementById("volume").style.setProperty("--vol", `${v}%`);
+  volumeSliderActive = true;
+  clearTimeout(volumeTimer);
+  volumeTimer = setTimeout(() => { volumeSliderActive = false; }, 1500);
+  cmd("volume", parseInt(v));
+}
+
+async function playPath(path) {
+  await fetch("/api/cmd", {
+    method:  "POST",
+    headers: {"Content-Type": "application/json"},
+    body:    JSON.stringify({ action: "play_path", path })
+  });
+}
+
+async function playStation(station) {
+  await fetch("/api/cmd", {
+    method:  "POST",
+    headers: {"Content-Type": "application/json"},
+    body:    JSON.stringify({ action: "play_station", station })
+  });
+}
+
+// ─── Stations menu ───────────────────────────────────────────────────────
+let currentTab        = "featured";
+let currentSubcat     = null;
+let favoritesCache    = [];
+const stationGrid     = document.getElementById("station-grid");
+const subnav          = document.getElementById("subnav");
+const tabsEl          = document.getElementById("stations-tabs");
+
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"']/g, c => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
+}
+
+function isFavorite(url) {
+  return favoritesCache.some(f => f.url === url);
+}
+
+async function loadFavorites() {
+  try {
+    const r = await fetch("/api/favorites");
+    favoritesCache = await r.json();
+  } catch (e) { favoritesCache = []; }
+}
+
+async function toggleFavorite(station, btnEl) {
+  const fav = isFavorite(station.url);
+  await fetch(fav ? "/api/favorites/remove" : "/api/favorites/add", {
+    method:  "POST",
+    headers: {"Content-Type": "application/json"},
+    body:    JSON.stringify(station)
+  });
+  await loadFavorites();
+  btnEl.classList.toggle("active", !fav);
+  if (currentTab === "favorites") renderTab();
+}
+
+function renderTiles(stations) {
+  if (!stations || !stations.length) {
+    stationGrid.innerHTML = '<div class="station-empty">No stations found.</div>';
+    return;
+  }
+  const html = stations.map((s, i) => {
+    const codec   = (s.codec || "").toUpperCase();
+    const isHires = codec === "FLAC" || s.bitrate >= 320;
+    const codecCls = isHires ? "codec-badge hires" : "codec-badge";
+    const meta = [
+      codec ? `<span class="${codecCls}">${escapeHtml(codec)}</span>` : "",
+      s.bitrate ? `${s.bitrate} kbps` : "",
+      s.country || "",
+    ].filter(Boolean).join(" · ");
+    const logoHtml = s.favicon
+      ? `<img src="${escapeHtml(s.favicon)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'placeholder',textContent:'♪'}))" alt="">`
+      : `<div class="placeholder">♪</div>`;
+    const isFav = isFavorite(s.url);
+    return `
+      <div class="station-tile" data-i="${i}">
+        <div class="station-logo">${logoHtml}</div>
+        <div class="station-info">
+          <div class="station-name">${escapeHtml(s.name || "Unknown")}</div>
+          <div class="station-meta">${meta}</div>
+        </div>
+        <button class="fav-btn ${isFav ? 'active' : ''}" data-i="${i}" aria-label="Favorite">
+          <svg viewBox="0 0 24 24"><path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/></svg>
+        </button>
+      </div>`;
+  }).join("");
+  stationGrid.innerHTML = html;
+
+  // Wire up clicks
+  stationGrid.querySelectorAll(".station-tile").forEach(el => {
+    el.addEventListener("click", (ev) => {
+      if (ev.target.closest(".fav-btn")) return;
+      playStation(stations[parseInt(el.dataset.i)]);
+    });
+  });
+  stationGrid.querySelectorAll(".fav-btn").forEach(el => {
+    el.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      toggleFavorite(stations[parseInt(el.dataset.i)], el);
+    });
+  });
+}
+
+function showLoading() {
+  stationGrid.innerHTML = '<div class="station-loading">LOADING…</div>';
+}
+
+async function fetchJson(url) {
+  const r = await fetch(url);
+  return r.json();
+}
+
+const GENRES = [
+  "jazz", "classical", "rock", "electronic", "ambient", "blues",
+  "folk", "indie", "metal", "country", "reggae", "world",
+  "hip-hop", "soul", "funk", "pop", "alternative", "baroque",
+  "chillout", "downtempo", "house", "techno", "trance",
+];
+const COUNTRIES = [
+  "United States", "United Kingdom", "Germany", "France", "Italy",
+  "Spain", "Netherlands", "Japan", "Australia", "Canada",
+  "Brazil", "Sweden", "Norway", "Argentina", "Mexico",
+];
+
+function renderSubnav(items, kind) {
+  subnav.innerHTML = items.map(item =>
+    `<button class="subnav-btn ${item === currentSubcat ? 'active' : ''}" data-val="${escapeHtml(item)}">${escapeHtml(item)}</button>`
+  ).join("");
+  subnav.style.display = "flex";
+  subnav.querySelectorAll(".subnav-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      currentSubcat = b.dataset.val;
+      renderTab();
+    });
+  });
+}
+
+async function renderTab() {
+  showLoading();
+  let stations = [];
+  try {
+    if (currentTab === "featured") {
+      subnav.style.display = "none";
+      stations = await fetchJson("/api/stations/featured");
+    } else if (currentTab === "genre") {
+      renderSubnav(GENRES, "genre");
+      if (!currentSubcat) currentSubcat = GENRES[0];
+      stations = await fetchJson(`/api/stations/by_tag/${encodeURIComponent(currentSubcat)}`);
+    } else if (currentTab === "country") {
+      renderSubnav(COUNTRIES, "country");
+      if (!currentSubcat) currentSubcat = COUNTRIES[0];
+      stations = await fetchJson(`/api/stations/by_country/${encodeURIComponent(currentSubcat)}`);
+    } else if (currentTab === "hires") {
+      subnav.style.display = "none";
+      stations = await fetchJson("/api/stations/by_codec/FLAC");
+    } else if (currentTab === "popular") {
+      subnav.style.display = "none";
+      stations = await fetchJson("/api/stations/popular");
+    } else if (currentTab === "favorites") {
+      subnav.style.display = "none";
+      stations = favoritesCache;
+    }
+  } catch (e) {
+    stationGrid.innerHTML = `<div class="station-empty">Error loading stations: ${escapeHtml(String(e))}</div>`;
+    return;
+  }
+  renderTiles(stations);
+}
+
+tabsEl.querySelectorAll(".tab-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    tabsEl.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    currentTab    = btn.dataset.tab;
+    currentSubcat = null;
+    document.getElementById("search-input").value = "";
+    renderTab();
+  });
+});
+
+// Search with debounce
+let searchTimer;
+document.getElementById("search-input").addEventListener("input", (ev) => {
+  clearTimeout(searchTimer);
+  const q = ev.target.value.trim();
+  if (!q) {
+    renderTab();
+    return;
+  }
+  searchTimer = setTimeout(async () => {
+    showLoading();
+    subnav.style.display = "none";
+    tabsEl.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+    try {
+      const stations = await fetchJson(`/api/stations/search?q=${encodeURIComponent(q)}`);
+      renderTiles(stations);
+    } catch (e) {
+      stationGrid.innerHTML = `<div class="station-empty">Search failed</div>`;
+    }
+  }, 350);
+});
+
+// Initial load
+(async () => {
+  await loadFavorites();
+  renderTab();
+})();
+
+// ─── Theme system ────────────────────────────────────────────────────────
+function applyTheme(theme) {
+  // theme is the full theme dict from /api/brand or /api/themes
+  const root = document.documentElement;
+  if (!theme) return;
+  const map = {
+    "--bg-deep":  theme.bg_deep,
+    "--bg-mid":   theme.bg_mid,
+    "--bg-card":  theme.bg_card,
+    "--accent":   theme.accent,
+    "--accent-2": theme.accent_2,
+    "--gold":     theme.accent,             /* legacy var, keep in sync */
+    "--gold-soft": theme.accent,
+    "--ivory":    theme.ivory,
+    "--ivory-2":  theme.ivory_2,
+    "--text-1":   theme.text_1,
+    "--text-2":   theme.text_2,
+    "--text-3":   theme.text_3,
+  };
+  for (const [k, v] of Object.entries(map)) {
+    if (v) root.style.setProperty(k, v);
+  }
+  // Update spectrum bar gradient via a CSS variable too
+  if (theme.spec_top && theme.spec_mid && theme.spec_bot) {
+    document.querySelectorAll(".bar").forEach(b => {
+      b.style.background = `linear-gradient(180deg, ${theme.spec_top} 0%, ${theme.spec_mid} 55%, ${theme.spec_bot} 100%)`;
+    });
+  }
+  // Update html/body radial gradient
+  document.body.style.background =
+    `radial-gradient(ellipse at top, ${theme.bg_mid} 0%, ${theme.bg_deep} 60%)`;
+}
+
+async function loadThemePicker() {
+  try {
+    const r    = await fetch("/api/themes");
+    const data = await r.json();
+    const grid = document.getElementById("theme-picker");
+    grid.innerHTML = data.themes.map(t => `
+      <div class="theme-swatch ${t.name === data.active ? 'active' : ''}" data-theme="${t.name}">
+        <div class="name">${escapeHtml(t.label)}</div>
+        <div class="tag">${escapeHtml(t.tagline)}</div>
+        <div class="swatch-row">
+          <div class="dot" style="background:${t.bg_deep}"></div>
+          <div class="dot" style="background:${t.accent}"></div>
+          <div class="dot" style="background:${t.accent_2}"></div>
+        </div>
+      </div>
+    `).join("");
+    grid.querySelectorAll(".theme-swatch").forEach(el => {
+      el.addEventListener("click", async () => {
+        const name = el.dataset.theme;
+        await fetch("/api/themes/set", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({name}),
+        });
+        // Refetch full theme + apply
+        const br = await fetch("/api/brand");
+        const bd = await br.json();
+        if (bd.theme) applyTheme(bd.theme);
+        grid.querySelectorAll(".theme-swatch").forEach(s => s.classList.toggle("active", s.dataset.theme === name));
+      });
+    });
+  } catch (e) {
+    console.error("theme picker load failed", e);
+  }
+}
+
+// ─── Brand loader (white-label) ──────────────────────────────────────────
+async function loadBrand() {
+  try {
+    const r = await fetch("/api/brand");
+    const b = await r.json();
+    document.getElementById("sw-name").textContent  = b.sw_name     || "Streamer";
+    document.getElementById("sw-sub").textContent   = b.sw_subtitle || "";
+    document.getElementById("hw-name").textContent  = b.hw_name     || "—";
+    document.getElementById("hw-dac").textContent   = b.hw_dac      || "—";
+    document.getElementById("footer").textContent   = b.footer      || "";
+    document.title                                  = b.sw_name + " — " + (b.sw_subtitle || "");
+    if (b.hw_specs) {
+      document.getElementById("spec-channels").textContent = b.hw_specs.channels   || "—";
+      document.getElementById("spec-dsp").textContent      = b.hw_specs.dsp        || "—";
+      document.getElementById("spec-amp").textContent      = b.hw_specs.amp        || "—";
+      document.getElementById("spec-output").textContent   = b.hw_specs.max_output || "—";
+    }
+    // Apply active theme
+    if (b.theme) applyTheme(b.theme);
+    // Update About-tab hardware reference
+    const aboutHw = document.getElementById("about-hw");
+    if (aboutHw) aboutHw.textContent = b.hw_name || "—";
+    // Album art mark = first letter of sw name
+    const mark = document.querySelector(".album-art .mark");
+    if (mark && b.sw_name) {
+      mark.textContent = b.sw_name.replace(/[^A-Za-z]/g, "").charAt(0) || "♪";
+    }
+    // Default album line when no track is playing
+    const npAlbum = document.getElementById("np-album");
+    if (npAlbum && !npAlbum.textContent.trim() || npAlbum.textContent === "—") {
+      npAlbum.textContent = b.sw_tagline || "";
+    }
+  } catch (e) { console.error("brand load failed", e); }
+}
+loadBrand();
+loadThemePicker();
+
+// ─── WebSocket ───────────────────────────────────────────────────────────
+let ws;
+function connect() {
+  const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  ws = new WebSocket(`${proto}//${location.host}/ws`);
+  ws.onmessage = (ev) => {
+    const f = JSON.parse(ev.data);
+    if (f.type === "frame") {
+      // Push to interpolation targets — the rAF loop renders smoothly
+      vu.L_target      = f.L_rms;
+      vu.R_target      = f.R_rms;
+      vu.L_peak_target = f.L_peak;
+      vu.R_peak_target = f.R_peak;
+      updateSpectrum(f.spectrum);
+      if (f.now) updateNowPlaying(f.now);
+      if (f.cover) updateCover(f.cover);
+    }
+  };
+  ws.onclose = () => setTimeout(connect, 1500);
+  ws.onerror = () => ws.close();
+}
+connect();
+// ─── Settings tab ────────────────────────────────────────────────────────
+function showToast(msg, kind) {
+  let t = document.getElementById("toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "toast";
+    t.className = "toast";
+    document.body.appendChild(t);
+  }
+  t.textContent = msg;
+  t.className = "toast show " + (kind || "");
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.className = "toast"; }, 3000);
+}
+
+async function loadSettings() {
+  // Network
+  try {
+    const r = await fetch("/api/network/status");
+    const n = await r.json();
+    document.getElementById("net-ssid").textContent     = n.ssid || "(disconnected)";
+    document.getElementById("net-signal").textContent   = n.signal ? n.signal + "%" : "—";
+    document.getElementById("net-security").textContent = n.security || "—";
+    document.getElementById("net-ip").textContent       = n.ip || "—";
+    document.getElementById("net-mac").textContent      = n.mac || "—";
+  } catch (e) { console.error("network status failed", e); }
+
+  // System
+  try {
+    const r = await fetch("/api/system/info");
+    const s = await r.json();
+    document.getElementById("sys-hostname").textContent = s.hostname || "—";
+    document.getElementById("sys-uptime").textContent   = s.uptime || "—";
+    document.getElementById("sys-temp").textContent     = s.cpu_temp_c ? s.cpu_temp_c + " °C" : "—";
+    document.getElementById("sys-mem").textContent      = s.mem_avail_mb && s.mem_total_mb
+      ? `${s.mem_avail_mb} MB free / ${s.mem_total_mb} MB total` : "—";
+    document.getElementById("sys-kernel").textContent   = s.kernel || "—";
+    const ifs = (s.interfaces || []).map(i => `${i.name}: ${i.ip}`).join("  ·  ") || "—";
+    document.getElementById("sys-interfaces").textContent = ifs;
+
+    const grid = document.getElementById("services-grid");
+    grid.innerHTML = "";
+    Object.entries(s.services || {}).forEach(([name, state]) => {
+      const cls = state === "active" ? "active" : (state === "failed" ? "failed" : "");
+      grid.innerHTML += `<span class="svc-pill ${cls}"><span class="dot"></span>${name}</span>`;
+    });
+  } catch (e) { console.error("system info failed", e); }
+
+  // Bluetooth (only if shown)
+  if (!document.body.classList.contains("no-bt")) {
+    loadBtDevices();
+  }
+}
+
+async function loadBtDevices() {
+  const list = document.getElementById("bt-paired-list");
+  try {
+    const r = await fetch("/api/bt/devices");
+    const devs = await r.json();
+    if (!devs.length) {
+      list.innerHTML = '<div class="bt-empty">No paired speakers yet. Tap <strong>Pair new speaker</strong> below.</div>';
+      return;
+    }
+    list.innerHTML = devs.map(d => `
+      <div class="bt-tile ${d.connected ? 'connected' : ''}">
+        <div class="bt-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.88 16.29L13 18.17V14.41L14.88 16.29zM13 5.83L14.88 7.71 13 9.59V5.83zM17.71 7.71L12 2H11V9.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L11 14.41V22H12L17.71 16.29L13.41 12L17.71 7.71z"/></svg>
+        </div>
+        <div class="bt-info">
+          <div class="bt-name">${escapeHtml(d.name)}</div>
+          <div class="bt-meta">${d.audio_sink ? "Audio Sink (A2DP)" : "—"} · ${d.connected ? "<strong style='color:#3aebb1'>Connected</strong>" : "Disconnected"}</div>
+        </div>
+        <div class="bt-actions">
+          ${d.connected
+            ? `<button class="bt-action" onclick="btAction('disconnect','${d.mac}')">Disc</button>`
+            : `<button class="bt-action" onclick="btAction('connect','${d.mac}')">Conn</button>`
+          }
+          <button class="bt-action danger" onclick="btForget('${d.mac}','${escapeHtml(d.name)}')">Forget</button>
+        </div>
+      </div>
+    `).join("");
+  } catch (e) {
+    list.innerHTML = '<div class="bt-empty">Could not load Bluetooth devices.</div>';
+  }
+}
+
+async function btAction(action, mac) {
+  showToast(action === "connect" ? "Connecting…" : "Disconnecting…");
+  try {
+    const r = await fetch(`/api/bt/${action}`, {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({mac})
+    });
+    const j = await r.json();
+    if (j.ok) {
+      showToast(action === "connect" ? "Connected" : "Disconnected", "success");
+      setTimeout(loadBtDevices, 1500);
+    } else {
+      showToast("Failed: " + (j.error || ""), "error");
+    }
+  } catch (e) { showToast("Error: " + e, "error"); }
+}
+
+async function btForget(mac, name) {
+  if (!confirm(`Forget "${name}"? You'll need to put it back in pairing mode to add it again.`)) return;
+  showToast("Forgetting…");
+  try {
+    const r = await fetch("/api/bt/forget", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({mac})
+    });
+    const j = await r.json();
+    if (j.ok) { showToast("Forgotten", "success"); loadBtDevices(); }
+    else      { showToast("Failed", "error"); }
+  } catch (e) { showToast("Error", "error"); }
+}
+
+function openBtScan() {
+  const m = document.getElementById("bt-scan-modal");
+  const list = document.getElementById("bt-scan-list");
+  list.innerHTML = '<div class="bt-loading">SCANNING ~25 SECONDS…</div>';
+  m.style.display = "flex";
+
+  fetch("/api/bt/scan", {method: "POST"}).then(r => r.json()).then(devs => {
+    if (!devs.length) {
+      list.innerHTML = '<div class="bt-empty">No new devices found. Make sure your speaker is in pairing mode (LED blinking fast) and try again.</div>';
+      return;
+    }
+    list.innerHTML = devs.map(d => `
+      <div class="bt-tile">
+        <div class="bt-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M14.88 16.29L13 18.17V14.41L14.88 16.29zM13 5.83L14.88 7.71 13 9.59V5.83zM17.71 7.71L12 2H11V9.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L11 14.41V22H12L17.71 16.29L13.41 12L17.71 7.71z"/></svg>
+        </div>
+        <div class="bt-info">
+          <div class="bt-name">${escapeHtml(d.name)}</div>
+          <div class="bt-meta">${d.mac}</div>
+        </div>
+        <div class="bt-actions">
+          <button class="bt-action" onclick="btPair('${d.mac}','${escapeHtml(d.name)}')">Pair</button>
+        </div>
+      </div>
+    `).join("");
+  }).catch(e => {
+    list.innerHTML = '<div class="bt-empty">Scan failed. Try again.</div>';
+  });
+}
+
+function closeBtScan() {
+  document.getElementById("bt-scan-modal").style.display = "none";
+}
+
+async function btPair(mac, name) {
+  showToast(`Pairing ${name}…`);
+  try {
+    const r = await fetch("/api/bt/pair", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({mac})
+    });
+    const j = await r.json();
+    if (j.ok) {
+      showToast(`Paired ${name}`, "success");
+      closeBtScan();
+      loadBtDevices();
+    } else {
+      showToast("Pair failed", "error");
+    }
+  } catch (e) { showToast("Error: " + e, "error"); }
+}
+
+function confirmSwitchWifi() {
+  const ok = confirm(
+    "This will disconnect the streamer from your WiFi and start a setup hotspot.\n\n" +
+    "After confirming:\n" +
+    "1. The streamer reboots into hotspot mode (~60 seconds)\n" +
+    "2. Connect your phone to 'xAMP-Setup-NNN' WiFi\n" +
+    "3. Go through the captive portal to pick a new network\n\n" +
+    "Continue?"
+  );
+  if (!ok) return;
+  fetch("/api/network/forget-and-hotspot", {method: "POST"})
+    .then(() => showToast("Switching WiFi… reconnecting in ~60 seconds.", "success"));
+}
+
+function confirmReboot() {
+  if (!confirm("Reboot the streamer? This takes about 60 seconds.")) return;
+  fetch("/api/system/reboot", {method: "POST"})
+    .then(() => showToast("Rebooting… reconnect in ~60 seconds.", "success"));
+}
+
+function confirmShutdown() {
+  if (!confirm("Shut down the streamer?\n\nAfter the LED goes dark you can press the front-panel power switch to cut the supply.")) return;
+  fetch("/api/system/shutdown", {method: "POST"})
+    .then(() => showToast("Shutting down… wait until the LED is dark before pressing the power switch.", "success"));
+}
+
+// Refresh Settings whenever user navigates to the tab
+const origSwitchTab = window.switchTab;
+window.switchTab = function(tab) {
+  origSwitchTab(tab);
+  if (tab === "settings") loadSettings();
+};
+
+// Apply no-bt body class if brand says so (PecanPi has no BT speaker section)
+fetch("/api/brand").then(r => r.json()).then(b => {
+  if (b && b.show_bt === "false") document.body.classList.add("no-bt");
+});
+
+
+// ─── Station management (Featured customization) ─────────────────────────
+async function openAddCustomStation() {
+  const m = document.getElementById("bt-scan-modal");
+  if (!m) return;
+  const inner = m.querySelector(".bt-modal-inner");
+  inner.innerHTML = `
+    <div class="bt-modal-title">Add custom station</div>
+    <div class="bt-modal-sub">Add an internet radio stream URL the streamer doesn't already know about.</div>
+    <form class="pwd-modal-form" onsubmit="submitCustomStation(event); return false;">
+      <input id="cs-name" type="text" placeholder="Station name" required style="width:100%;padding:12px;font-size:15px;background:rgba(0,0,0,0.4);color:var(--ivory);border:1px solid var(--accent);border-radius:6px;outline:none;margin-bottom:8px;">
+      <input id="cs-url"  type="url"  placeholder="Stream URL (http:// or https://)" required style="width:100%;padding:12px;font-size:15px;background:rgba(0,0,0,0.4);color:var(--ivory);border:1px solid var(--accent);border-radius:6px;outline:none;margin-bottom:8px;">
+      <input id="cs-codec" type="text" placeholder="Codec (optional, e.g. FLAC, MP3, AAC)" style="width:100%;padding:12px;font-size:15px;background:rgba(0,0,0,0.4);color:var(--ivory);border:1px solid var(--accent);border-radius:6px;outline:none;margin-bottom:8px;">
+      <div class="pwd-modal-actions">
+        <button type="button" class="settings-btn settings-btn-secondary" onclick="closeBtScan()">Cancel</button>
+        <button type="submit" class="settings-btn">Add</button>
+      </div>
+    </form>
+  `;
+  m.style.display = "flex";
+  setTimeout(() => document.getElementById("cs-name")?.focus(), 100);
+}
+
+async function submitCustomStation(ev) {
+  ev.preventDefault();
+  const name = document.getElementById("cs-name").value.trim();
+  const url  = document.getElementById("cs-url").value.trim();
+  const codec = document.getElementById("cs-codec").value.trim();
+  if (!name || !url) return;
+  closeBtScan();
+  showToast("Adding " + name + "…");
+  try {
+    const r = await fetch("/api/stations/add_custom", {
+      method: "POST", headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({name, url, codec})
+    });
+    const j = await r.json();
+    if (j.ok) {
+      showToast("Added: " + name, "success");
+      if (currentTab === "featured") renderTab();
+    } else {
+      showToast("Failed: " + (j.error || ""), "error");
+    }
+  } catch (e) { showToast("Error: " + e, "error"); }
+}
+
+async function hideStation(name) {
+  if (!confirm(`Hide "${name}" from your Featured list? You can restore it via Settings → Stations → Reset to defaults.`)) return;
+  await fetch("/api/stations/hide", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({name})
+  });
+  showToast("Hidden: " + name, "success");
+  if (currentTab === "featured") renderTab();
+}
+
+async function removeCustomStation(url, name) {
+  if (!confirm(`Remove "${name}" from your custom stations?`)) return;
+  await fetch("/api/stations/remove_custom", {
+    method: "POST", headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({url})
+  });
+  showToast("Removed: " + name, "success");
+  if (currentTab === "featured") renderTab();
+}
+
+async function resetStationsToDefaults() {
+  if (!confirm("Reset your Featured stations to the default list? This unhides any stations you removed and deletes any custom stations you added. (Favourites are NOT affected.)")) return;
+  await fetch("/api/stations/reset", {method: "POST"});
+  showToast("Stations reset to defaults", "success");
+  if (currentTab === "featured") renderTab();
+}
+
+// Wrap renderTiles to add origin-aware controls (× button on featured tiles, custom-marker on user stations)
+const _origRenderTiles = renderTiles;
+renderTiles = function(stations) {
+  _origRenderTiles(stations);
+  if (currentTab !== "featured") return;
+  // Add an Add-Custom tile at the very start of the grid
+  const grid = document.getElementById("station-grid");
+  if (!grid || grid.querySelector(".add-custom-tile")) return;
+  const addTile = document.createElement("div");
+  addTile.className = "station-tile add-custom-tile";
+  addTile.style.cssText = "border-style: dashed; cursor: pointer;";
+  addTile.innerHTML = `
+    <div class="station-logo" style="background: rgba(255, 78, 205, 0.1);">
+      <div class="placeholder" style="color: var(--accent);">+</div>
+    </div>
+    <div class="station-info">
+      <div class="station-name" style="color: var(--accent);">Add custom station</div>
+      <div class="station-meta">Direct stream URL</div>
+    </div>
+    <div></div>`;
+  addTile.addEventListener("click", openAddCustomStation);
+  grid.insertBefore(addTile, grid.firstChild);
+
+  // Add × button (top-right) on each station tile to hide/remove
+  grid.querySelectorAll(".station-tile:not(.add-custom-tile)").forEach((tile, i) => {
+    if (tile.querySelector(".tile-x")) return;
+    const station = stations[i];
+    if (!station) return;
+    const x = document.createElement("button");
+    x.className = "tile-x";
+    x.title = station.origin === "custom" ? "Remove custom station" : "Hide from Featured";
+    x.textContent = "×";
+    x.style.cssText = "position:absolute;top:6px;right:8px;background:rgba(0,0,0,0.6);border:1px solid var(--accent);color:var(--accent);width:22px;height:22px;border-radius:50%;font-size:14px;line-height:18px;padding:0;cursor:pointer;z-index:2;";
+    x.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (station.origin === "custom") removeCustomStation(station.url, station.name);
+      else hideStation(station.name);
+    });
+    tile.style.position = "relative";
+    tile.appendChild(x);
+  });
+};
+
+</script>
+</body>
+</html>

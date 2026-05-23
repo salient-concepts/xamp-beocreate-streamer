@@ -1,0 +1,94 @@
+#!/bin/bash
+# Beocreate DSP cold-boot initializer.
+#
+# Why this exists: dsptoolkit talks to the DSP via sigmatcpserver over TCP
+# (port 8086). On cold boot the install-profile sequence can race with
+# sigmatcpserver's own startup-time checksum probing, leaving DSP memory in
+# a partial-write state. The result is continuous low-level noise + crackle
+# during playback that doesn't clear until the install is re-run.
+#
+# Sequence:
+#   1. Wait for sigmatcpserver to be fully responsive
+#   2. dsptoolkit reset                    (halt + clear DSP)
+#   3. dsptoolkit install-profile          (write XML profile to DSP RAM)
+#   4. dsptoolkit clear-iir-filters        (flat passthrough baseline)
+#   5. Read DSP checksum, verify it matches the expected XML checksum
+#   6. If mismatch, repeat up to MAX_RETRIES
+#
+# Idempotent. Safe to run any time.
+
+set -uo pipefail
+
+DT="/opt/dsptools/venv/bin/dsptoolkit"
+PROFILE="/var/lib/hifiberry/dspprogram.xml"
+MAX_RETRIES=3
+SETTLE_S=2
+# Empirical: cold-boot runs that get a clean checksum-match on the first pass
+# can still leave the DSP in an audibly noisy state. A second full pass after
+# a settle window reliably reaches clean steady state. The cost is ~8 extra
+# seconds at boot, well worth it for a sale unit.
+PASSES=2
+PASS_SETTLE_S=5
+
+log() { echo "[xamp-dsp-init] $*"; }
+
+# Filter dsptoolkit's deprecation banner so the journal stays readable.
+run_dt() {
+    sudo "$DT" "$@" 2>&1 | grep -viE "DEPRECAT|REST API|migrat|provides|performance|JSON|interface|documentation|=====|Better|Modern|Enhanced|Web-based|Comprehensive|For migration|deprecated|future|Start the|API doc|Example|cache" || true
+}
+
+# 1. Wait until sigmatcpserver answers a probe (TCP 8086).
+log "waiting for sigmatcpserver on tcp/8086..."
+for i in $(seq 1 30); do
+    if (echo > /dev/tcp/127.0.0.1/8086) >/dev/null 2>&1; then
+        log "sigmatcpserver responsive after ${i}s"
+        break
+    fi
+    sleep 1
+done
+
+# Extra settle so sigmatcpserver finishes its own initial checksum scan
+# before we start writing. 5s is empirically enough on this hardware.
+sleep 5
+
+# Pull expected checksum from the XML profile.
+EXPECTED=$(grep -oE '<metadata type="checksum">[A-F0-9]+</metadata>' "$PROFILE" \
+            | head -1 | sed -E 's|<[^>]+>||g')
+log "expected DSP checksum (from XML): $EXPECTED"
+
+do_pass() {
+    local label="$1"
+    log "$label: reset + install + clear-iir-filters"
+    run_dt reset                              >/dev/null
+    sleep "$SETTLE_S"
+    run_dt install-profile "$PROFILE"         >/dev/null
+    sleep "$SETTLE_S"
+    run_dt clear-iir-filters                  >/dev/null
+    sleep 1
+    GOT=$(run_dt get-checksum | grep -oE '[A-F0-9]{32}' | head -1)
+    log "$label: DSP reports checksum: $GOT"
+}
+
+for pass in $(seq 1 "$PASSES"); do
+    attempt=0
+    while (( attempt < MAX_RETRIES )); do
+        attempt=$(( attempt + 1 ))
+        do_pass "pass $pass/$PASSES attempt $attempt/$MAX_RETRIES"
+        if [[ -n "$GOT" && "$GOT" == "$EXPECTED" ]]; then
+            log "pass $pass/$PASSES: checksum MATCH"
+            break
+        fi
+        log "pass $pass/$PASSES: checksum MISMATCH — retrying"
+    done
+    if [[ "$GOT" != "$EXPECTED" ]]; then
+        log "ERROR: pass $pass/$PASSES never matched after $MAX_RETRIES attempts (got=$GOT expected=$EXPECTED)"
+        exit 1
+    fi
+    if (( pass < PASSES )); then
+        log "settling ${PASS_SETTLE_S}s before next pass..."
+        sleep "$PASS_SETTLE_S"
+    fi
+done
+
+log "all $PASSES passes succeeded — DSP cleanly initialized"
+exit 0
