@@ -127,23 +127,25 @@ the user waits for the Pi LED to go dark, then presses the front switch).
 
 ---
 
-## 5. WiFi power_save defaults ON every cold boot — not currently a problem
+## 5. WiFi power_save defaults ON every cold boot — FIXED
 
-`dmesg` on every cold boot shows:
+**Symptom:** `dmesg` on every cold boot showed:
 
 ```
 brcmfmac: brcmf_cfg80211_set_power_mgmt: power save enabled
 ```
 
-There is **no** NetworkManager dropin or systemd unit on the Pi that
-disables it. Audio streaming on this unit isn't affected because
-**eth0 is the primary route** (metric 100 vs wlan0's 600) — music goes
-via wired Ethernet.
+The brcmfmac radio sleeps between packets while idle. On Wi-Fi-only
+deployments this queues incoming stream data and produces intermittent
+audio dropouts the first time the radio wakes. Not visible on the
+development unit while it was on wired Ethernet (eth0 primary route at
+metric 100, wlan0 metric 600) but instantly visible when the buyer or
+demo runs it Wi-Fi-only.
 
-**Lesson for buyer / portable use:** If a buyer runs this unit on Wi-Fi
-only, drop a `/etc/NetworkManager/conf.d/99-wifi-no-powersave.conf` with
-`[connection] wifi.powersave = 2`. Worth adding to the ship_prep.sh
-checklist.
+**Fix shipped:** [`etc/NetworkManager/conf.d/99-wifi-no-powersave.conf`](../etc/NetworkManager/conf.d/99-wifi-no-powersave.conf)
+with `[connection] wifi.powersave = 2`. Sets the default for all
+NetworkManager connections; persistent across reboots. Verified live
+with `sudo iw dev wlan0 get power_save` → `Power save: off`.
 
 ---
 
