@@ -21,11 +21,8 @@ input[type=password],input[type=text]{width:100%;padding:14px 48px 14px 16px;fon
 input:focus{border-color:var(--accent)}
 .eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:var(--accent);width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .row{display:flex;gap:8px}
-.btn{flex:1;padding:14px;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--accent);color:#fff;border:0;border-radius:8px;cursor:pointer;transition:opacity .15s}
-.btn:disabled{background:rgba(255,78,205,0.25);color:rgba(255,255,255,0.55);cursor:not-allowed}
+.btn{flex:1;padding:14px;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--accent);color:#fff;border:0;border-radius:8px;cursor:pointer}
 .btn-sec{background:transparent;color:var(--text2);border:1px solid rgba(154,142,176,0.4)}
-.pwd-hint{font-size:11px;color:var(--text2);margin-top:6px;letter-spacing:.3px}
-.pwd-hint.ok{color:var(--accent)}
 .foot{text-align:center;color:var(--text2);font-size:11px;margin-top:24px;line-height:1.6}
 .foot strong{color:var(--accent)}
 </style>
@@ -53,16 +50,15 @@ input:focus{border-color:var(--accent)}
     <form action="/connect" method="POST">
       <input type="hidden" name="ssid" value="{{ ssid_encoded }}">
       <div class="pwd-wrap">
-        <input id="pwd" type="password" name="password" placeholder="WiFi password" minlength="8" required autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <input id="pwd" type="password" name="password" placeholder="WiFi password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
         <button type="button" class="eye" onclick="togglePwd()" aria-label="Show password">
           <svg id="eyeOn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           <svg id="eyeOff" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
         </button>
       </div>
-      <div id="pwdHint" class="pwd-hint">Wi-Fi passwords are at least 8 characters.</div>
-      <div class="row" style="margin-top:14px">
+      <div class="row">
         <a class="btn btn-sec" href="/" style="text-decoration:none;text-align:center;line-height:24px">Back</a>
-        <button id="connectBtn" class="btn" type="submit" disabled>Connect</button>
+        <button class="btn" type="submit">Connect</button>
       </div>
     </form>
   </div>
@@ -70,32 +66,6 @@ input:focus{border-color:var(--accent)}
 </div>
 <script>
 function togglePwd(){var p=document.getElementById("pwd"),on=document.getElementById("eyeOn"),off=document.getElementById("eyeOff");if(p.type=="password"){p.type="text";on.style.display="none";off.style.display="";}else{p.type="password";on.style.display="";off.style.display="none";}}
-
-// WPA2 PSK minimum is 8 characters. Disable Connect + show live count until
-// threshold met — avoids a 95s round-trip just to be told the password was
-// too short.
-(function(){
-  var pwd = document.getElementById('pwd');
-  var btn = document.getElementById('connectBtn');
-  var hint = document.getElementById('pwdHint');
-  if (!pwd || !btn || !hint) return;
-  function update(){
-    var n = pwd.value.length;
-    if (n >= 8) {
-      btn.disabled = false;
-      hint.textContent = n + ' characters';
-      hint.classList.add('ok');
-    } else {
-      btn.disabled = true;
-      hint.textContent = (n === 0)
-        ? 'Wi-Fi passwords are at least 8 characters.'
-        : 'Wi-Fi passwords are at least 8 characters. (' + n + '/8)';
-      hint.classList.remove('ok');
-    }
-  }
-  pwd.addEventListener('input', update);
-  update();
-})();
 
 // Fail-banner: if connect.html previously stashed a "last attempted SSID" in
 // sessionStorage AND we are now back on this confirm page (meaning the
