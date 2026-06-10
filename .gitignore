@@ -8,6 +8,9 @@ snapshots/
 build/_build/
 *.deb
 
+# Vendored build helpers (re-fetched by build script)
+build/pishrink.sh
+
 # OS cruft
 .DS_Store
 Thumbs.db
