@@ -1810,12 +1810,18 @@ for (let i = 0; i < NUM_BARS; i++) {
 }
 
 // ─── VU needle math + smooth interpolation ──────────────────────────────
+// K-14 calibration: 0 VU on the meter face corresponds to -14 dBFS source.
+// This is the Bob Katz K-system reference used by music streaming services
+// and mastering tools. Music at typical RMS (-18 to -10 dBFS) now lives in
+// the active range of the meter; full-scale digital clipping pins +3 VU.
+// (Previous build had 0 VU = 0 dBFS, which only deflected on clipping.)
+const VU_REF_DBFS = -14;
 function dbToAngle(db) {
-  // Maps -60..-20 → -55, -20..0 → -55..+20, 0..+3 → +20..+50
-  if (db <= -20) return -55;
-  if (db >= 3)   return 50;
-  if (db <= 0)   return -55 + ((db + 20) / 20) * 75;
-  return 20 + (db / 3) * 30;
+  const vu = db - VU_REF_DBFS;        // dBFS → dBVU (relative to K-14 ref)
+  if (vu <= -20) return -55;
+  if (vu >= 3)   return 50;
+  if (vu <= 0)   return -55 + ((vu + 20) / 20) * 75;
+  return 20 + (vu / 3) * 30;
 }
 function rotateNeedle(id, angle) {
   const el = document.getElementById(id);
