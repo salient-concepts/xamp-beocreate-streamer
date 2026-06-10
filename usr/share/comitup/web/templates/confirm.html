@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xAMP · Connect to {{ ssid }}</title>
+<style>
+:root{--bg1:#0d0820;--bg2:#1a0f33;--accent:#ff4ecd;--cyan:#4edcff;--ivory:#f0e8f5;--text2:#9a8eb0;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ivory);font-family:-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;padding:20px}
+.wrap{max-width:420px;margin:0 auto;padding:30px 0}
+.brand{text-align:center;margin-bottom:24px}
+.brand h1{font-size:36px;font-weight:800;letter-spacing:5px;background:linear-gradient(135deg,var(--accent),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .sub{font-size:10px;letter-spacing:3px;color:var(--text2);text-transform:uppercase;margin-top:2px}
+.card{background:rgba(0,0,0,0.4);border:1px solid var(--accent);border-radius:12px;padding:24px;margin-bottom:20px}
+.card h2{font-size:18px;font-weight:600;color:var(--ivory);margin-bottom:6px}
+.card .ssid{color:var(--cyan);font-weight:700}
+.note{font-size:12px;color:var(--text2);line-height:1.55;margin:12px 0 18px}
+.pwd-wrap{position:relative;margin-bottom:14px}
+input[type=password],input[type=text]{width:100%;padding:14px 48px 14px 16px;font-size:16px;background:rgba(0,0,0,0.5);color:var(--ivory);border:1px solid rgba(255,78,205,0.4);border-radius:8px;outline:none}
+input:focus{border-color:var(--accent)}
+.eye{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:0;color:var(--accent);width:42px;height:42px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.row{display:flex;gap:8px}
+.btn{flex:1;padding:14px;font-size:14px;font-weight:700;letter-spacing:1px;text-transform:uppercase;background:var(--accent);color:#fff;border:0;border-radius:8px;cursor:pointer}
+.btn-sec{background:transparent;color:var(--text2);border:1px solid rgba(154,142,176,0.4)}
+.foot{text-align:center;color:var(--text2);font-size:11px;margin-top:24px;line-height:1.6}
+.foot strong{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <h1>xAMP</h1>
+    <div class="sub">BEOCREATE</div>
+  </div>
+  <div class="card">
+    <div id="xampFailBanner" style="display:none;background:rgba(255,90,90,0.12);border:1px solid #ff5a5a;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#ffd5d5;line-height:1.55">
+      <strong style="color:#fff">Last attempt to join <span id="xampFailSsid" style="color:#fff;font-weight:700"></span> did not connect.</strong><br>
+      Re-check the password (look out for upper/lower case, special characters, and 2.4 vs 5 GHz SSIDs) and try again.
+    </div>
+    <h2>Connect to <span class="ssid">{{ ssid }}</span></h2>
+    <div class="note">
+      Enter the WiFi password for this network.<br><br>
+      {% if mode == "single" %}
+      The streamer will join your network and this hotspot will close. Use your phone or computer to find it on your home WiFi.
+      {% else %}
+      The streamer will join your network. The hotspot will remain available as a fallback.
+      {% endif %}
+    </div>
+    <form action="/connect" method="POST">
+      <input type="hidden" name="ssid" value="{{ ssid_encoded }}">
+      <div class="pwd-wrap">
+        <input id="pwd" type="password" name="password" placeholder="WiFi password" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false">
+        <button type="button" class="eye" onclick="togglePwd()" aria-label="Show password">
+          <svg id="eyeOn" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg id="eyeOff" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+      </div>
+      <div class="row">
+        <a class="btn btn-sec" href="/" style="text-decoration:none;text-align:center;line-height:24px">Back</a>
+        <button class="btn" type="submit">Connect</button>
+      </div>
+    </form>
+  </div>
+  <div class="foot"><strong>xAMP Beocreate</strong><br>As-is software, no support implied.</div>
+</div>
+<script>
+function togglePwd(){var p=document.getElementById("pwd"),on=document.getElementById("eyeOn"),off=document.getElementById("eyeOff");if(p.type=="password"){p.type="text";on.style.display="none";off.style.display="";}else{p.type="password";on.style.display="";off.style.display="none";}}
+
+// Fail-banner: if connect.html previously stashed a "last attempted SSID" in
+// sessionStorage AND we are now back on this confirm page (meaning the
+// captive portal hotspot came back = the join failed), light up the red
+// banner naming that SSID. Cleared on display so a fresh visit doesn't show
+// stale state. visibilitychange/pageshow re-checks for iOS bfcache.
+(function(){
+  function showBanner(){
+    try {
+      var ssid = sessionStorage.getItem('xampLastAttemptSsid');
+      if (!ssid) return;
+      var b = document.getElementById('xampFailBanner');
+      var s = document.getElementById('xampFailSsid');
+      if (!b || !s) return;
+      s.textContent = ssid;
+      b.style.display = 'block';
+      sessionStorage.removeItem('xampLastAttemptSsid');
+    } catch(e) {}
+  }
+  showBanner();
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) showBanner(); });
+  window.addEventListener('pageshow', showBanner);
+})();
+</script>
+</body>
+</html>

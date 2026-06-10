@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>xAMP · Connecting…</title>
+<script>
+  // Remember which SSID we tried; if the buyer ends up back on the captive
+  // portal hotspot (= we failed to join their network), confirm.html reads
+  // this and shows a red "last attempt did not connect" banner.
+  try { sessionStorage.setItem('xampLastAttemptSsid', {{ ssid|tojson }}); } catch(e) {}
+</script>
+<style>
+:root{--bg1:#0d0820;--bg2:#1a0f33;--accent:#ff4ecd;--cyan:#4edcff;--ivory:#f0e8f5;--text2:#9a8eb0;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ivory);font-family:-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh;padding:20px;display:flex;align-items:center;justify-content:center}
+.wrap{max-width:420px;text-align:center}
+.brand h1{font-size:42px;font-weight:800;letter-spacing:6px;background:linear-gradient(135deg,var(--accent),var(--cyan));-webkit-background-clip:text;background-clip:text;color:transparent;margin-bottom:4px}
+.brand .sub{font-size:11px;letter-spacing:4px;color:var(--text2);text-transform:uppercase;margin-bottom:30px}
+.spinner{width:50px;height:50px;margin:30px auto;border:3px solid rgba(255,78,205,0.2);border-top-color:var(--accent);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.title{font-size:20px;color:var(--ivory);margin-bottom:12px}
+.note{font-size:14px;color:var(--text2);line-height:1.6}
+.note .ssid{color:var(--cyan);font-weight:700}
+.foot{margin-top:40px;color:var(--text2);font-size:11px;line-height:1.6}
+.foot strong{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand">
+    <h1>xAMP</h1>
+    <div class="sub">BEOCREATE</div>
+  </div>
+  <div class="spinner"></div>
+  <div class="title">Connecting…</div>
+  <div class="note">Joining <span class="ssid">{{ ssid }}</span><br>This usually takes <strong>30–90 seconds</strong>. Stay on this page — it will go offline once the streamer joins your network.<br><br>If the streamer joins successfully, reconnect your phone to <strong>your home WiFi</strong> and visit <strong>http://xamp-beocreate.local:8081</strong> to use it.<br><br><strong style="color:var(--accent)">If you see the password form again</strong>, the password was wrong — the streamer rebroadcast its setup hotspot so you can retry.</div>
+  <div class="foot"><strong>xAMP Beocreate</strong><br>As-is software, no support implied.</div>
+</div>
+</body>
+</html>
