@@ -8,6 +8,15 @@ A **Salient Concepts** small-batch build.
 
 ---
 
+## Restorable SD card image
+
+The as-shipped image (~1.4 GB compressed, ~6.5 GB uncompressed) is published
+on the [Releases page](https://github.com/salient-concepts/xamp-beocreate-streamer/releases/latest).
+Includes firstboot autoexpand. See the release notes for flash instructions
+and SHA-256 verification.
+
+---
+
 ## What's here
 
 ```

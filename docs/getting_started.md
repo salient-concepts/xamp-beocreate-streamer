@@ -25,7 +25,7 @@ If the unit isn't on your network, it broadcasts a setup hotspot named `xAMP-Beo
 5. Enter your Wi-Fi password and submit. Your phone reconnects to your home Wi-Fi automatically.
 6. The unit reboots once (~60 seconds) and joins your network.
 
-**If the unit doesn't come back on your network** (typo'd password, network out of range, picked the wrong SSID), give it ~90 seconds — the hotspot reappears automatically. Reconnect to `xAMP-Beocreate-NNN` from your phone, manually open `http://10.41.0.1`, and retry. Tap **Rescan** if your home network doesn't appear in the dropdown.
+**If the unit doesn't come back on your network** (typo'd password, network out of range, picked the wrong SSID), give it ~30 seconds — the captive portal page will switch to "Last attempt did not connect" and the `xAMP-Beocreate-NNN` hotspot reappears automatically. Reconnect to it from your phone, manually open `http://10.41.0.1`, and retry. Tap **Rescan** if your home network doesn't appear in the dropdown.
 
 ### 3 — Reach the web UI
 
