@@ -2059,8 +2059,14 @@ function renderTiles(stations) {
       s.bitrate ? `${s.bitrate} kbps` : "",
       s.country || "",
     ].filter(Boolean).join(" · ");
-    const logoHtml = s.favicon
-      ? `<img src="${escapeHtml(s.favicon)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'placeholder',textContent:'♪'}))" alt="">`
+    // radio-browser sometimes returns the literal string "null" for favicon (not a real URL)
+    // and sometimes returns relative paths that would resolve to xAMP itself. Guard against
+    // both: only render an <img> when favicon looks like a real http(s):// URL.
+    const faviconOk = s.favicon && typeof s.favicon === 'string'
+                      && /^https?:\/\//i.test(s.favicon)
+                      && s.favicon !== 'null';
+    const logoHtml = faviconOk
+      ? `<img src="${escapeHtml(s.favicon)}" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'placeholder',textContent:'♪'}))" alt="" referrerpolicy="no-referrer">`
       : `<div class="placeholder">♪</div>`;
     const isFav = isFavorite(s.url);
     return `

@@ -652,6 +652,19 @@ async def static_handler(request):
     return web.Response(status=404)
 
 
+async def favicon_handler(request):
+    """Tiny magenta-circle SVG favicon. Suppresses browser console 404s for /favicon.ico
+    without shipping a binary asset. Cached for a day to avoid revalidation chatter."""
+    svg = (
+        b'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+        b'<circle cx="16" cy="16" r="14" fill="#ff4ecd"/>'
+        b'<text x="16" y="22" text-anchor="middle" font-family="Arial,sans-serif" '
+        b'font-size="18" font-weight="900" fill="#ffffff">x</text></svg>'
+    )
+    return web.Response(body=svg, content_type="image/svg+xml",
+                        headers={"Cache-Control": "public, max-age=86400"})
+
+
 async def brand_handler(request):
     data = load_brand()
     data["theme"] = load_active_theme()
@@ -1472,6 +1485,7 @@ async def stations_user_state(request):
 def main():
     app = web.Application()
     app.router.add_get("/",                       index)
+    app.router.add_get("/favicon.ico",             favicon_handler)
     app.router.add_get("/ws",                     ws_handler)
     app.router.add_get("/api/brand",              brand_handler)
     app.router.add_get("/api/themes",             themes_list)

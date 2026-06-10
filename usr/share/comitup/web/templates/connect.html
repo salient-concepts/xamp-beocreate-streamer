@@ -22,6 +22,12 @@ body{background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ivory)
 .title{font-size:20px;color:var(--ivory);margin-bottom:12px}
 .note{font-size:14px;color:var(--text2);line-height:1.6}
 .note .ssid{color:var(--cyan);font-weight:700}
+.countdown{margin-top:24px;font-size:34px;font-weight:800;color:var(--accent);letter-spacing:1px;font-variant-numeric:tabular-nums}
+.countdown .unit{font-size:13px;font-weight:600;letter-spacing:3px;color:var(--text2);margin-left:4px;vertical-align:middle}
+.outcome{display:none;text-align:left;background:rgba(255,78,205,0.05);border:1px solid rgba(255,78,205,0.25);border-radius:10px;padding:18px 18px;margin-top:20px;font-size:14px;color:var(--ivory);line-height:1.65}
+.outcome h3{font-size:14px;font-weight:800;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin:0 0 8px}
+.outcome .branch{padding:10px 12px;border-left:3px solid var(--accent);background:rgba(0,0,0,0.35);border-radius:0 6px 6px 0;margin-top:12px}
+.outcome .branch strong{color:var(--cyan)}
 .foot{margin-top:40px;color:var(--text2);font-size:11px;line-height:1.6}
 .foot strong{color:var(--accent)}
 </style>
@@ -32,10 +38,49 @@ body{background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ivory)
     <h1>xAMP</h1>
     <div class="sub">BEOCREATE</div>
   </div>
-  <div class="spinner"></div>
-  <div class="title">Connecting…</div>
-  <div class="note">Joining <span class="ssid">{{ ssid }}</span><br>This usually takes <strong>30–90 seconds</strong>. Stay on this page — it will go offline once the streamer joins your network.<br><br>If the streamer joins successfully, reconnect your phone to <strong>your home WiFi</strong> and visit <strong>http://xamp-beocreate.local:8081</strong> to use it.<br><br><strong style="color:var(--accent)">If you see the password form again</strong>, the password was wrong — the streamer rebroadcast its setup hotspot so you can retry.</div>
+  <div id="spinner" class="spinner"></div>
+  <div id="title" class="title">Connecting…</div>
+  <div id="note" class="note">Joining <span class="ssid">{{ ssid }}</span><br>Stay on this page. The streamer is trying to join your network — when it succeeds, this page will go offline (your phone will drop off the setup hotspot).</div>
+  <div id="countdown" class="countdown">90<span class="unit">SEC</span></div>
+  <div id="outcome" class="outcome">
+    <h3>Time to check your phone</h3>
+    The streamer has either joined your home WiFi (success) or rebroadcast its setup hotspot (the password was wrong). Look at your phone's WiFi list to see which.
+    <div class="branch">
+      <strong>Joined home WiFi (success):</strong><br>
+      Reconnect your phone to your home WiFi, then open <strong>http://xamp-beocreate.local:8081</strong> in any browser.
+    </div>
+    <div class="branch">
+      <strong>xAMP-Beocreate hotspot reappeared (wrong password):</strong><br>
+      Rejoin the hotspot, then open <strong>http://10.41.0.1</strong> manually in Safari. The password form will reload with a red "did not connect" banner.
+    </div>
+  </div>
   <div class="foot"><strong>xAMP Beocreate</strong><br>As-is software, no support implied.</div>
+<script>
+  // Countdown 90s -> outcome decision screen. Pure client-side: once the Pi
+  // tears down the hotspot the browser can't reach us, so JS is the only
+  // mechanism that can transition the UI past the spinner.
+  (function(){
+    var secs = 90;
+    var el = document.getElementById('countdown');
+    var spin = document.getElementById('spinner');
+    var title = document.getElementById('title');
+    var note = document.getElementById('note');
+    var outcome = document.getElementById('outcome');
+    var t = setInterval(function(){
+      secs--;
+      if (secs > 0) {
+        el.innerHTML = secs + '<span class="unit">SEC</span>';
+      } else {
+        clearInterval(t);
+        spin.style.display = 'none';
+        el.style.display = 'none';
+        note.style.display = 'none';
+        title.textContent = 'Done';
+        outcome.style.display = 'block';
+      }
+    }, 1000);
+  })();
+</script>
 </div>
 </body>
 </html>
