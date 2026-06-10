@@ -28,6 +28,8 @@ body{background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ivory)
 .outcome h3{font-size:14px;font-weight:800;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;margin:0 0 8px}
 .outcome .branch{padding:10px 12px;border-left:3px solid var(--accent);background:rgba(0,0,0,0.35);border-radius:0 6px 6px 0;margin-top:12px}
 .outcome .branch strong{color:var(--cyan)}
+.outcome .openbtn{display:inline-block;margin-top:10px;padding:10px 16px;background:linear-gradient(135deg,var(--cyan),var(--accent));color:#0d0820;border-radius:8px;text-decoration:none;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-size:12px}
+.outcome .retrybtn{display:inline-block;margin-top:10px;padding:10px 16px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:8px;text-decoration:none;font-weight:800;letter-spacing:1px;text-transform:uppercase;font-size:12px}
 .foot{margin-top:40px;color:var(--text2);font-size:11px;line-height:1.6}
 .foot strong{color:var(--accent)}
 </style>
@@ -47,18 +49,28 @@ body{background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ivory)
     The streamer has either joined your home WiFi (success) or rebroadcast its setup hotspot (the password was wrong). Look at your phone's WiFi list to see which.
     <div class="branch">
       <strong>Joined home WiFi (success):</strong><br>
-      Reconnect your phone to your home WiFi, then open <strong>http://xamp-beocreate.local:8081</strong> in any browser.
+      Once your phone is back on your home WiFi, tap below to open the streamer. Works via Bonjour / mDNS — no IP needed.<br>
+      <a class="openbtn" href="http://xamp-beocreate.local:8081">Open xAMP Beocreate</a>
     </div>
     <div class="branch">
       <strong>xAMP-Beocreate hotspot reappeared (wrong password):</strong><br>
-      Rejoin the hotspot, then open <strong>http://10.41.0.1</strong> manually in Safari. The password form will reload with a red "did not connect" banner.
+      Rejoin the setup hotspot, then tap below to reopen the password form. A red "did not connect" banner will name the SSID you tried.<br>
+      <a class="retrybtn" href="http://10.41.0.1">Open Setup Page</a>
     </div>
   </div>
   <div class="foot"><strong>xAMP Beocreate</strong><br>As-is software, no support implied.</div>
 <script>
-  // Countdown 90s -> outcome decision screen. Pure client-side: once the Pi
-  // tears down the hotspot the browser can't reach us, so JS is the only
-  // mechanism that can transition the UI past the spinner.
+  // Dual-trigger transition to the outcome screen:
+  //   (a) live heartbeat probe — when the captive portal stops responding,
+  //       the Pi has torn down the hotspot (joined the buyer's WiFi OR
+  //       failed and is rebroadcasting). Trip after 3 consecutive failures
+  //       = ~9 seconds of no response.
+  //   (b) safety net — 90s ceiling. If the probe gets confused (e.g. the
+  //       Pi's AP stays up but Flask gets stuck), still flip after 90s.
+  //
+  // The probe is the primary signal; the countdown is informational. As soon
+  // as the heartbeat probe trips, the page flips to Done — which is much
+  // faster than waiting the full 90s.
   (function(){
     var secs = 90;
     var el = document.getElementById('countdown');
@@ -66,19 +78,46 @@ body{background:linear-gradient(135deg,var(--bg1),var(--bg2));color:var(--ivory)
     var title = document.getElementById('title');
     var note = document.getElementById('note');
     var outcome = document.getElementById('outcome');
-    var t = setInterval(function(){
+    var done = false;
+    var failures = 0;
+    var TRIP = 3;
+
+    function transitionToDone(reason){
+      if (done) return;
+      done = true;
+      clearInterval(tick);
+      clearInterval(probe);
+      spin.style.display = 'none';
+      el.style.display = 'none';
+      note.style.display = 'none';
+      title.textContent = 'Done';
+      outcome.style.display = 'block';
+    }
+
+    var tick = setInterval(function(){
       secs--;
-      if (secs > 0) {
+      if (secs <= 0) {
+        transitionToDone('timeout');
+      } else if (!done) {
         el.innerHTML = secs + '<span class="unit">SEC</span>';
-      } else {
-        clearInterval(t);
-        spin.style.display = 'none';
-        el.style.display = 'none';
-        note.style.display = 'none';
-        title.textContent = 'Done';
-        outcome.style.display = 'block';
       }
     }, 1000);
+
+    function heartbeat(){
+      if (done) return;
+      var ctrl = new AbortController();
+      var to = setTimeout(function(){ ctrl.abort(); }, 2000);
+      fetch('/blink', { method:'GET', cache:'no-store', signal: ctrl.signal })
+        .then(function(){ clearTimeout(to); failures = 0; })
+        .catch(function(){
+          clearTimeout(to);
+          failures++;
+          if (failures >= TRIP) transitionToDone('hotspot-dropped');
+        });
+    }
+    // Wait ~6s before first probe so the Pi has a chance to start the join.
+    setTimeout(heartbeat, 6000);
+    var probe = setInterval(heartbeat, 3000);
   })();
 </script>
 </div>
