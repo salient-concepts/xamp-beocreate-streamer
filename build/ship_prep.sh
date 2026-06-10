@@ -43,6 +43,12 @@ echo "[ship_prep] wiping saved WiFi credentials..."
 sudo rm -f /etc/NetworkManager/system-connections/*.nmconnection
 sudo nmcli connection reload 2>/dev/null || true
 
+# Wipe Comitup's persisted hotspot suffix so each shipped unit broadcasts a
+# fresh random "xAMP-Beocreate-NNN" rather than carrying a stale id across
+# factory resets. Without this, every refurbished/demo unit comes up with
+# the same SSID and SSID collisions happen if a buyer ever owns two.
+sudo rm -f /var/lib/comitup/comitup.json
+
 echo "[ship_prep] wiping streamer user state..."
 sudo rm -f /var/lib/streamer/favorites.json
 sudo rm -f /var/lib/streamer/user_stations.json

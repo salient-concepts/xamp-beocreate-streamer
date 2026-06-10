@@ -24,6 +24,35 @@ a custom hi-fi streaming OS built specifically for the **HiFiBerry Beocreate**
 
 ---
 
+## 1.5 · Wi-Fi Setup (skip if using Ethernet)
+
+If the streamer is not already on a network, it broadcasts its own Wi-Fi
+hotspot named **`xAMP-Beocreate-NNN`** (NNN is unique to your unit). The
+hotspot **stays up until you successfully join a network**, and
+**re-broadcasts automatically after any failed attempt** — you can retry
+as many times as you need.
+
+1. On your phone, turn airplane mode ON, then turn Wi-Fi back ON. (This
+   works around an iOS / Android quirk during initial setup.)
+2. Open Wi-Fi settings and join **`xAMP-Beocreate-NNN`** (no password).
+3. The setup page should open automatically. **If it does not open, or
+   if you are retrying after a failed password, open this URL manually
+   in any browser:**
+
+   > **`http://10.41.0.1`**
+
+   iOS and Android only auto-launch the captive portal **the first time**
+   they join a network. Every retry needs the manual URL. This is normal
+   phone behavior, not a streamer fault.
+4. Pick your home Wi-Fi (2.4 GHz or 5 GHz — both work) and enter the
+   password. Tap **Connect**.
+5. The streamer reboots once and rejoins your network. Total time from
+   "Connect" to "back online": ~90 seconds.
+
+Once back on your network, jump to **§2 · Reach the Web UI**.
+
+---
+
 ## 2 · Reach the Web UI from Your Phone or Laptop
 
 The unit advertises itself on your network via mDNS / Bonjour. From any
@@ -200,6 +229,18 @@ Imager, reinsert. Most OSes auto-detect the Beocreate HAT.
 ---
 
 ## 10 · Troubleshooting
+
+**Wi-Fi setup didn't take / wrong password?**
+- The unit re-broadcasts the `xAMP-Beocreate-NNN` hotspot whenever it fails
+  to join a network. Wait ~90 seconds, then rejoin the hotspot from your
+  phone.
+- **You will need to manually open `http://10.41.0.1` in a browser** —
+  iOS and Android suppress the captive-portal auto-popup on the second
+  join to the same SSID. This is normal phone behavior.
+- Re-enter the password (watch for the difference between 2.4 GHz and
+  5 GHz SSIDs if your router uses different ones, and double-check
+  special characters).
+- If your home network does not appear in the list, tap **Rescan**.
 
 **No sound from speakers?**
 - Check speaker wires are seated in the rear terminals.

@@ -57,21 +57,35 @@ LED on the back blinks during boot and goes steady when ready.</li>
 </ul>
 <h3 id="wi-fi-setup-skip-if-youre-using-ethernet">2 — Wi-Fi setup (skip
 if you’re using Ethernet)</h3>
-<p>If the unit isn’t already on your network, it broadcasts its own
-setup hotspot for ~60 seconds after first boot.</p>
+<p>If the unit isn’t on your network, it broadcasts a setup hotspot
+named <code>xAMP-Beocreate-NNN</code>. The hotspot <strong>stays up
+until you successfully join a network, and re-broadcasts automatically
+after any failed attempt</strong> — you can retry as many times as you
+need.</p>
 <ol type="1">
 <li>On your phone, enable <strong>airplane mode</strong>, then turn
-<strong>Wi-Fi back on</strong> (this works around an iOS/Android
-setup-WiFi quirk)</li>
-<li>Join the network: <code>xAMP-Beocreate-NNN</code> (no password)</li>
-<li>The captive portal opens automatically — if not, open
-<code>http://10.41.0.1</code> in any browser</li>
+<strong>Wi-Fi back on</strong> (works around an iOS/Android setup-WiFi
+quirk)</li>
+<li>Join the network: <strong><code>xAMP-Beocreate-NNN</code></strong>
+(no password)</li>
+<li>The captive portal should open automatically on first join.
+<strong>If it does not open, or if you are retrying after a failed
+password, manually open <code>http://10.41.0.1</code> in any
+browser.</strong> iOS and Android only auto-launch the captive portal
+the first time they join a network — every retry needs the manual
+URL.</li>
 <li><strong>Pick your home Wi-Fi</strong> — either 2.4 GHz or 5 GHz,
 your choice. The Pi 4 handles both.</li>
 <li>Enter your Wi-Fi password and submit. Your phone reconnects to your
 home Wi-Fi automatically.</li>
 <li>The unit reboots once (~60 seconds) and joins your network.</li>
 </ol>
+<p><strong>If the unit doesn’t come back on your network</strong>
+(typo’d password, network out of range, picked the wrong SSID), give it
+~90 seconds — the hotspot reappears automatically. Reconnect to
+<code>xAMP-Beocreate-NNN</code> from your phone, manually open
+<code>http://10.41.0.1</code>, and retry. Tap <strong>Rescan</strong> if
+your home network doesn’t appear in the dropdown.</p>
 <h3 id="reach-the-web-ui">3 — Reach the web UI</h3>
 <p>The unit advertises itself on your network via <strong>mDNS /
 Bonjour</strong> as <code>xAMP Beocreate</code>. From any phone, tablet,

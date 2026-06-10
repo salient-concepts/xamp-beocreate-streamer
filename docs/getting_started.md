@@ -16,14 +16,16 @@
 
 ### 2 — Wi-Fi setup (skip if you're using Ethernet)
 
-If the unit isn't already on your network, it broadcasts its own setup hotspot for ~60 seconds after first boot.
+If the unit isn't on your network, it broadcasts a setup hotspot named `xAMP-Beocreate-NNN`. The hotspot **stays up until you successfully join a network, and re-broadcasts automatically after any failed attempt** — you can retry as many times as you need.
 
-1. On your phone, enable **airplane mode**, then turn **Wi-Fi back on** (this works around an iOS/Android setup-WiFi quirk)
-2. Join the network: `xAMP-Beocreate-NNN` (no password)
-3. The captive portal opens automatically — if not, open `http://10.41.0.1` in any browser
+1. On your phone, enable **airplane mode**, then turn **Wi-Fi back on** (works around an iOS/Android setup-WiFi quirk)
+2. Join the network: **`xAMP-Beocreate-NNN`** (no password)
+3. The captive portal should open automatically on first join. **If it does not open, or if you are retrying after a failed password, manually open `http://10.41.0.1` in any browser.** iOS and Android only auto-launch the captive portal the first time they join a network — every retry needs the manual URL.
 4. **Pick your home Wi-Fi** — either 2.4 GHz or 5 GHz, your choice. The Pi 4 handles both.
 5. Enter your Wi-Fi password and submit. Your phone reconnects to your home Wi-Fi automatically.
 6. The unit reboots once (~60 seconds) and joins your network.
+
+**If the unit doesn't come back on your network** (typo'd password, network out of range, picked the wrong SSID), give it ~90 seconds — the hotspot reappears automatically. Reconnect to `xAMP-Beocreate-NNN` from your phone, manually open `http://10.41.0.1`, and retry. Tap **Rescan** if your home network doesn't appear in the dropdown.
 
 ### 3 — Reach the web UI
 
