@@ -102,22 +102,30 @@ function togglePwd(){var p=document.getElementById("pwd"),on=document.getElement
 // captive portal hotspot came back = the join failed), light up the red
 // banner naming that SSID. Cleared on display so a fresh visit doesn't show
 // stale state. visibilitychange/pageshow re-checks for iOS bfcache.
+//
+// IMPORTANT: every refresh re-hides the banner first. Without this, iOS
+// Safari bfcache restores the page with the banner already visible in the
+// DOM from a prior render; sessionStorage is empty (we cleared it last
+// time), so the "show if SSID present" check no-ops and the banner is
+// stuck on.
 (function(){
-  function showBanner(){
+  function refreshBanner(){
+    var b = document.getElementById('xampFailBanner');
+    var s = document.getElementById('xampFailSsid');
+    if (!b || !s) return;
+    // Always default to hidden — handles bfcache + back-navigation restore.
+    b.style.display = 'none';
     try {
       var ssid = sessionStorage.getItem('xampLastAttemptSsid');
       if (!ssid) return;
-      var b = document.getElementById('xampFailBanner');
-      var s = document.getElementById('xampFailSsid');
-      if (!b || !s) return;
       s.textContent = ssid;
       b.style.display = 'block';
       sessionStorage.removeItem('xampLastAttemptSsid');
     } catch(e) {}
   }
-  showBanner();
-  document.addEventListener('visibilitychange', function(){ if (!document.hidden) showBanner(); });
-  window.addEventListener('pageshow', showBanner);
+  refreshBanner();
+  document.addEventListener('visibilitychange', function(){ if (!document.hidden) refreshBanner(); });
+  window.addEventListener('pageshow', refreshBanner);
 })();
 </script>
 </body>
