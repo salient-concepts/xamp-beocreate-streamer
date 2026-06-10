@@ -14,6 +14,12 @@ case "$EVENT" in
     start)
         curl -s --max-time 1 -X POST -d "state=start" "$WEBAPP_URL" >/dev/null 2>&1 || true
         /usr/bin/mpc stop >/dev/null 2>&1 || true
+        # MPD's output thread takes ~100-300 ms to fully release ALSA after
+        # `mpc stop` returns. shairport-sync calls this hook synchronously
+        # before opening ALSA, so blocking here means shairport doesn't hit
+        # "Device or resource busy" on its first probe — audio plays cleanly
+        # on the first AirPlay select instead of needing stop+start retry.
+        sleep 0.5
         ;;
     stop)
         curl -s --max-time 1 -X POST -d "state=stop"  "$WEBAPP_URL" >/dev/null 2>&1 || true
