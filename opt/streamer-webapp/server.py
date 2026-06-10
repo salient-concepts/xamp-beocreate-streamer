@@ -793,9 +793,40 @@ async def cmd_handler(request):
         return web.json_response({"ok": False, "error": str(e)}, status=500)
 
 
+# ─── Reference test tones (local FLAC files in /var/lib/mpd/music/HiRes-Demo) ─
+# Useful for verifying the audio path / L+R channel balance / hi-res capability.
+# MPD paths are relative to music_directory.
+REFERENCE_TRACKS = [
+    {"name": "Sine Sweep 20 Hz – 20 kHz",
+     "url": "HiRes-Demo/01-Sine-Sweep-20Hz-20kHz-24bit-96kHz.flac",
+     "codec": "FLAC", "bitrate": 24*96, "tags": "test,reference,sweep",
+     "description": "Frequency response check · 24-bit / 96 kHz"},
+    {"name": "Pink Noise",
+     "url": "HiRes-Demo/02-Pink-Noise-24bit-96kHz.flac",
+     "codec": "FLAC", "bitrate": 24*96, "tags": "test,reference,noise",
+     "description": "System balance / acoustic measurement · 24-bit / 96 kHz"},
+    {"name": "Multitone 100 Hz + 1 kHz + 10 kHz",
+     "url": "HiRes-Demo/03-Multitone-100Hz-1kHz-10kHz-24bit-96kHz.flac",
+     "codec": "FLAC", "bitrate": 24*96, "tags": "test,reference,multitone",
+     "description": "Intermodulation / multi-tone test · 24-bit / 96 kHz"},
+    {"name": "1 kHz Reference Tone",
+     "url": "HiRes-Demo/04-Reference-1kHz-24bit-192kHz.flac",
+     "codec": "FLAC", "bitrate": 24*192, "tags": "test,reference,pure-tone",
+     "description": "Pure 1 kHz reference · 24-bit / 192 kHz"},
+    {"name": "L / R Channel Test",
+     "url": "HiRes-Demo/05-LR-Channel-Test-24bit-96kHz.flac",
+     "codec": "FLAC", "bitrate": 24*96, "tags": "test,reference,channel",
+     "description": "Speaker / channel verification · 24-bit / 96 kHz"},
+]
+
+
 # ─── Station endpoints ───────────────────────────────────────────────────────
 async def stations_featured(request):
     return web.json_response(FEATURED_STATIONS)
+
+
+async def stations_reference(request):
+    return web.json_response(REFERENCE_TRACKS)
 
 
 async def stations_search(request):
@@ -1448,6 +1479,7 @@ def main():
     app.router.add_post("/api/cmd",               cmd_handler)
     # Stations
     app.router.add_get("/api/stations/featured",  stations_featured)
+    app.router.add_get("/api/stations/reference", stations_reference)
     app.router.add_get("/api/stations/user_state",     stations_user_state)
     app.router.add_post("/api/stations/add_custom",    stations_add_custom)
     app.router.add_post("/api/stations/hide",          stations_hide)

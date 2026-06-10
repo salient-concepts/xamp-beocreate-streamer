@@ -1513,6 +1513,7 @@ body.kiosk .volume-num { font-size: 11px; }
       <button class="tab-btn"          data-tab="genre">🎵 By Genre</button>
       <button class="tab-btn"          data-tab="country">🌍 By Country</button>
       <button class="tab-btn"          data-tab="hires">💎 Hi-Res</button>
+      <button class="tab-btn"          data-tab="reference">💿 Reference</button>
       <button class="tab-btn"          data-tab="popular">🔥 Popular</button>
       <button class="tab-btn"          data-tab="favorites">★ Favorites</button>
     </div>
@@ -2118,6 +2119,9 @@ async function renderTab() {
     } else if (currentTab === "hires") {
       subnav.style.display = "none";
       stations = await fetchJson("/api/stations/by_codec/FLAC");
+    } else if (currentTab === "reference") {
+      subnav.style.display = "none";
+      stations = await fetchJson("/api/stations/reference");
     } else if (currentTab === "popular") {
       subnav.style.display = "none";
       stations = await fetchJson("/api/stations/popular");
