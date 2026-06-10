@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>xAMP Audio Streamer</title>
+  <style>
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="getting_started.css" />
+</head>
+<body>
+<header id="title-block-header">
+<h1 class="title">xAMP Audio Streamer</h1>
+</header>
+<h1 id="xamp-audio-streamer">xAMP Audio Streamer</h1>
+<h2 id="quick-start-guide">Quick Start Guide</h2>
+<p><em>running on the <strong>Beocreate</strong> platform — HiFiBerry
+4-channel amplifier HAT + Raspberry Pi 4</em></p>
+<hr />
+<blockquote>
+<p><strong>Note:</strong> xAMP is custom software built specifically for
+this unit. Keep it as long as you like, or switch to one of the
+alternatives (Volumio, Moode, Roon, LMS, HQPlayer, piCorePlayer) — see
+the <strong>ABOUT</strong> tab. The hardware is open: it’ll run any
+Pi-based audio OS that recognizes the HiFiBerry Beocreate HAT.</p>
+</blockquote>
+<h3 id="connect">1 — Connect</h3>
+<ul>
+<li><strong>Speakers</strong> wire directly to the unit’s rear amplifier
+outputs. Two pairs of speaker terminals: the high-power pair (2 × 60 W)
+for woofers/full-range, the lower-power pair (2 × 30 W) for tweeters.
+For a regular 2-speaker setup, use either pair — the unit ships with the
+IIR crossover filters cleared so any pair gives full-range stereo.</li>
+<li><strong>Ethernet</strong> to the rear RJ-45 port —
+<em>recommended</em> for AirPlay 2 stability and bit-perfect FLAC. Or
+use Wi-Fi (next step) — Pi 4 supports both <strong>2.4 GHz and 5
+GHz</strong>.</li>
+<li><strong>Power cord</strong> — the unit boots in about 60 seconds.
+Press the <strong>front-panel power button</strong> to power on. The Pi
+LED on the back blinks during boot and goes steady when ready.</li>
+</ul>
+<h3 id="wi-fi-setup-skip-if-youre-using-ethernet">2 — Wi-Fi setup (skip
+if you’re using Ethernet)</h3>
+<p>If the unit isn’t already on your network, it broadcasts its own
+setup hotspot for ~60 seconds after first boot.</p>
+<ol type="1">
+<li>On your phone, enable <strong>airplane mode</strong>, then turn
+<strong>Wi-Fi back on</strong> (this works around an iOS/Android
+setup-WiFi quirk)</li>
+<li>Join the network: <code>xAMP-Beocreate-NNN</code> (no password)</li>
+<li>The captive portal opens automatically — if not, open
+<code>http://10.41.0.1</code> in any browser</li>
+<li><strong>Pick your home Wi-Fi</strong> — either 2.4 GHz or 5 GHz,
+your choice. The Pi 4 handles both.</li>
+<li>Enter your Wi-Fi password and submit. Your phone reconnects to your
+home Wi-Fi automatically.</li>
+<li>The unit reboots once (~60 seconds) and joins your network.</li>
+</ol>
+<h3 id="reach-the-web-ui">3 — Reach the web UI</h3>
+<p>The unit advertises itself on your network via <strong>mDNS /
+Bonjour</strong> as <code>xAMP Beocreate</code>. From any phone, tablet,
+or computer on the same network, open:</p>
+<p><strong><code>http://xamp-beocreate.local:8081</code></strong></p>
+<p>If your network or device doesn’t support <code>.local</code> lookup,
+log into your router and find the IP address it assigned to the unit
+(look for hostname <code>xamp-beocreate</code>), then open:</p>
+<p><strong><code>http://[that-ip]:8081</code></strong></p>
+<h3 id="using-the-web-ui">4 — Using the web UI</h3>
+<p>Four tabs at the top:</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<tbody>
+<tr>
+<td><strong>PLAYER</strong></td>
+<td>Now-playing card, twin McIntosh-blue VU meters, 32-band spectrum
+analyzer, transport controls, volume slider</td>
+</tr>
+<tr>
+<td><strong>STATIONS</strong></td>
+<td>50,000+ internet radio — sub-tabs for Featured (curated audiophile),
+Genre, Country, Hi-Res, Popular, Favorites. Tap a station to play. Tap
+<strong>★</strong> to save a favorite.</td>
+</tr>
+<tr>
+<td><strong>SETTINGS</strong></td>
+<td>Theme picker (5 looks), Wi-Fi switcher, system health, <strong>Power
+Management</strong> (graceful Reboot and Shut Down buttons)</td>
+</tr>
+<tr>
+<td><strong>ABOUT</strong></td>
+<td>Hardware specs, software credits, alternative-OS guide</td>
+</tr>
+</tbody>
+</table>
+<p><strong>AirPlay 2</strong> — your iPhone, iPad, or Mac sees the unit
+as <strong>xAMP Beocreate</strong> in any AirPlay picker. You can switch
+between the radio app and AirPlay freely — whichever you ask for last,
+wins.</p>
+<p><strong>Hi-res demo tones</strong> are preloaded in the local library
+(24-bit / 96 kHz and 192 kHz reference tracks) under the <em>Stations →
+Library</em> sub-tab.</p>
+<h3 id="shutting-down-properly">5 — Shutting down properly</h3>
+<p>The front-panel button is a power switch — it cuts the ATX rail
+directly. To shut down cleanly:</p>
+<ol type="1">
+<li>Open the web UI → <strong>SETTINGS</strong> tab</li>
+<li>Tap the red <strong>Shut Down</strong> circle under <em>Power
+Management</em></li>
+<li>Wait ~10 seconds for the Pi LED on the back to go dark</li>
+<li>Then press the front-panel switch to cut power</li>
+</ol>
+<p>(Yanking power while the Pi is running won’t kill the SD card
+immediately — the OS uses journaling — but the soft-shutdown is
+gentler.)</p>
+<h3 id="advanced">6 — Advanced</h3>
+<ul>
+<li><strong>SSH:</strong> <code>pi@xamp-beocreate.local</code>  
+password <code>raspberry</code> <em>(change with <code>passwd</code>
+after first login)</em></li>
+<li><strong>DSP tuning:</strong> the Beocreate’s ADAU1452 DSP is
+configurable over the network. Install the HiFiBerry
+<strong>BeoCreate2</strong> web app on any device on your network —
+it’ll auto-discover this streamer at
+<code>xamp-beocreate.local:8086</code> and let you adjust crossovers,
+parametric EQ, time alignment, and speaker presets. Or use Analog
+Devices’ SigmaStudio (Windows) for full DSP design.</li>
+<li><strong>Factory reset:</strong> re-flash the original SD card image
+(kept by seller — message via eBay)</li>
+<li><strong>Switch OS:</strong> see the <em>Alternative Software</em>
+card in the ABOUT tab. Most Pi-based audiophile OSes auto-detect the
+HiFiBerry Beocreate HAT.</li>
+</ul>
+<hr />
+<p><strong>xAMP Audio Streamer</strong> · Salient Concepts · sold as-is
+· questions via eBay message</p>
+</body>
+</html>
