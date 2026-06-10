@@ -1,0 +1,17 @@
+#!/bin/bash
+# /usr/local/bin/comitup-callback
+# Called by comitup on every state transition. Log-only.
+#
+# IMPORTANT: This script must NOT touch the DSP. WiFi state transitions have
+# zero relevance to DSP state. An earlier version reapplied dsptoolkit
+# install-profile here, which rewrote DSP RAM mid-playback any time comitup
+# restarted (or transitioned through CONNECTING/CONNECTED), producing the
+# partial-write state documented in docs/LESSONS_LEARNED.md §1 — audible as
+# noise, crackle, or total dropout. DSP cold-boot init is handled exclusively
+# by xamp-dsp-init via dsp-clear-filters.service; this callback should remain
+# log-only forever.
+
+set -e
+STATE="$1"
+logger -t comitup-callback "comitup state -> $STATE"
+exit 0
